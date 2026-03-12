@@ -5,12 +5,35 @@ import db from '@/lib/db';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    
+
     // Check if we are updating the current match roster
     if (body.type === 'SET_MATCH') {
       const matchNumber = parseInt(body.matchNumber, 10);
       const teams = body.teams.map((t: any) => t.toString()).join(',');
-      db.prepare('INSERT OR REPLACE INTO matches (id, matchNumber, teams) VALUES (1, ?, ?)').run(matchNumber, teams);
+      await (await db.prepare('INSERT OR REPLACE INTO matches (id, matchNumber, teams) VALUES (1, ?, ?)')).run(matchNumber, teams);
+      return NextResponse.json({ success: true });
+    }
+
+    // NEW: Handle Match Reset (Clear grid only, keep completed reports)
+    if (body.type === 'RESET_MATCH') {
+      await (await db.prepare('DELETE FROM matches')).run();
+      await (await db.prepare('DELETE FROM drafts')).run();
+      // We do NOT delete from reports because the user wants them to be permanent.
+      return NextResponse.json({ success: true });
+    }
+
+    // NEW: Handle Individual Team Removal from Grid
+    if (body.type === 'DELETE_TEAM') {
+      const teamNumber = parseInt(body.teamNumber, 10);
+      // We ONLY delete drafts. COMPLETED reports stay in the database.
+      await (await db.prepare('DELETE FROM drafts WHERE teamNumber = ?')).run(teamNumber);
+
+      // Update the match roster string
+      const matchRow: any = await (await db.prepare('SELECT * FROM matches WHERE id = 1')).get();
+      if (matchRow) {
+        const teams = matchRow.teams.split(',').filter((t: string) => t !== teamNumber.toString()).join(',');
+        await (await db.prepare('UPDATE matches SET teams = ? WHERE id = 1')).run(teams);
+      }
       return NextResponse.json({ success: true });
     }
 
@@ -18,54 +41,66 @@ export async function POST(req: Request) {
     const record = {
       id: body.id,
       status: body.status || 'IN_PROGRESS',
-      scouterName: body.scouterName || '',
+      ourTeamNumber: body.ourTeamNumber || '',
       matchNumber: parseInt(body.matchNumber, 10) || 0,
       teamNumber: parseInt(body.teamNumber, 10) || 0,
-      autoL1: parseInt(body.autoL1, 10) || 0,
-      autoL2: parseInt(body.autoL2, 10) || 0,
-      autoL3: parseInt(body.autoL3, 10) || 0,
-      autoMiss: parseInt(body.autoMiss, 10) || 0,
-      leaveLine: body.leaveLine ? 1 : 0,
-      teleopL1: parseInt(body.teleopL1, 10) || 0,
-      teleopL2: parseInt(body.teleopL2, 10) || 0,
-      teleopL3: parseInt(body.teleopL3, 10) || 0,
-      teleopMiss: parseInt(body.teleopMiss, 10) || 0,
-      cycleSpeed: body.cycleSpeed || 'AVERAGE',
-      driverSkill: parseInt(body.driverSkill, 10) || 3,
-      defense: parseInt(body.defense, 10) || 3,
-      climbStatus: body.climbStatus || 'NONE',
-      notes: body.notes || ''
+      gameStrategy: body.gameStrategy || '',
+      driveTrain: body.driveTrain || '',
+      robotWeight: body.robotWeight || '',
+      scoringRange: body.scoringRange || '',
+      storageCapacity: body.storageCapacity || '',
+      outtakeType: body.outtakeType || '',
+      driverExperience: body.driverExperience || '',
+      autonomousCapabilities: body.autonomousCapabilities || '',
+      autoStartPositions: body.autoStartPositions || '',
+      autoAccuracy: body.autoAccuracy || '',
+      hasHang: body.hasHang || '',
+      shootingAccuracy: body.shootingAccuracy || '',
+      cycleTime: body.cycleTime || '',
+      intakeType: body.intakeType || '',
+      avgFuelScored: body.avgFuelScored || '',
+      hasVision: body.hasVision || '',
+      majorIssues: body.majorIssues || '',
+      commonIssue: body.commonIssue || ''
     };
 
     if (record.status === 'IN_PROGRESS') {
-      db.prepare(`
+      await (await db.prepare(`
         INSERT OR REPLACE INTO drafts (
-          id, status, scouterName, matchNumber, teamNumber, autoL1, autoL2, autoL3, autoMiss, leaveLine,
-          teleopL1, teleopL2, teleopL3, teleopMiss, cycleSpeed, driverSkill, defense, climbStatus, notes, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        record.id, 'IN_PROGRESS', record.scouterName, record.matchNumber, record.teamNumber,
-        record.autoL1, record.autoL2, record.autoL3, record.autoMiss, record.leaveLine,
-        record.teleopL1, record.teleopL2, record.teleopL3, record.teleopMiss,
-        record.cycleSpeed, record.driverSkill, record.defense, record.climbStatus, record.notes,
+          id, status, ourTeamNumber, matchNumber, teamNumber, gameStrategy, driveTrain, robotWeight, 
+          scoringRange, storageCapacity, outtakeType, driverExperience, autonomousCapabilities, 
+          autoStartPositions, autoAccuracy, hasHang, shootingAccuracy, cycleTime, intakeType, 
+          avgFuelScored, hasVision, majorIssues, commonIssue, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)).run(
+        record.id, 'IN_PROGRESS', record.ourTeamNumber, record.matchNumber, record.teamNumber,
+        record.gameStrategy, record.driveTrain, record.robotWeight, record.scoringRange,
+        record.storageCapacity, record.outtakeType, record.driverExperience,
+        record.autonomousCapabilities, record.autoStartPositions, record.autoAccuracy,
+        record.hasHang, record.shootingAccuracy, record.cycleTime, record.intakeType,
+        record.avgFuelScored, record.hasVision, record.majorIssues, record.commonIssue,
         new Date().toISOString()
       );
     } else {
-      db.prepare(`
+      await (await db.prepare(`
         INSERT OR REPLACE INTO reports (
-          id, status, scouterName, matchNumber, teamNumber, autoL1, autoL2, autoL3, autoMiss, leaveLine,
-          teleopL1, teleopL2, teleopL3, teleopMiss, cycleSpeed, driverSkill, defense, climbStatus, notes, createdAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        record.id, 'COMPLETED', record.scouterName, record.matchNumber, record.teamNumber,
-        record.autoL1, record.autoL2, record.autoL3, record.autoMiss, record.leaveLine,
-        record.teleopL1, record.teleopL2, record.teleopL3, record.teleopMiss,
-        record.cycleSpeed, record.driverSkill, record.defense, record.climbStatus, record.notes,
+          id, status, ourTeamNumber, matchNumber, teamNumber, gameStrategy, driveTrain, robotWeight, 
+          scoringRange, storageCapacity, outtakeType, driverExperience, autonomousCapabilities, 
+          autoStartPositions, autoAccuracy, hasHang, shootingAccuracy, cycleTime, intakeType, 
+          avgFuelScored, hasVision, majorIssues, commonIssue, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)).run(
+        record.id, 'COMPLETED', record.ourTeamNumber, record.matchNumber, record.teamNumber,
+        record.gameStrategy, record.driveTrain, record.robotWeight, record.scoringRange,
+        record.storageCapacity, record.outtakeType, record.driverExperience,
+        record.autonomousCapabilities, record.autoStartPositions, record.autoAccuracy,
+        record.hasHang, record.shootingAccuracy, record.cycleTime, record.intakeType,
+        record.avgFuelScored, record.hasVision, record.majorIssues, record.commonIssue,
         new Date().toISOString()
       );
-      db.prepare('DELETE FROM drafts WHERE id = ?').run(record.id);
+      await (await db.prepare('DELETE FROM drafts WHERE id = ?')).run(record.id);
     }
-    
+
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
     console.error('Error in API POST:', error);
@@ -75,28 +110,27 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    const rawReports = db.prepare('SELECT * FROM reports ORDER BY createdAt DESC').all();
-    const rawDrafts = db.prepare('SELECT * FROM drafts').all();
-    const matchRow: any = db.prepare('SELECT * FROM matches WHERE id = 1').get();
-    
+    const rawReports = await (await db.prepare('SELECT * FROM reports ORDER BY createdAt DESC')).all();
+    const rawDrafts = await (await db.prepare('SELECT * FROM drafts')).all();
+    const matchRow: any = await (await db.prepare('SELECT * FROM matches WHERE id = 1')).get();
+
     const currentMatch = matchRow ? {
       matchNumber: matchRow.matchNumber,
-      teams: matchRow.teams.split(',').map((t: string) => parseInt(t, 10))
+      teams: matchRow.teams.split(',').filter((t: string) => t.length > 0).map((t: string) => parseInt(t, 10))
     } : { matchNumber: 0, teams: [] };
 
     const mapRecord = (r: any) => ({
       ...r,
-      leaveLine: r.leaveLine === 1,
       matchNumber: parseInt(r.matchNumber, 10),
       teamNumber: parseInt(r.teamNumber, 10)
     });
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       reports: [
         ...rawReports.map(mapRecord),
         ...rawDrafts.map(mapRecord)
-      ], 
-      currentMatch 
+      ],
+      currentMatch
     });
   } catch (error) {
     console.error('Error in API GET:', error);
