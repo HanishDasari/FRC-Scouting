@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     if (body.type === 'SET_MATCH') {
       const matchNumber = parseInt(body.matchNumber, 10);
       const teams = body.teams.map((t: any) => t.toString()).join(',');
-      db.prepare('INSERT OR REPLACE INTO matches (id, matchNumber, teams) VALUES (1, ?, ?)').run(matchNumber, teams);
+      db.prepare('INSERT OR REPLACE INTO matches (matchNumber, teams) VALUES (?, ?)').run(matchNumber, teams);
       return NextResponse.json({ success: true });
     }
 
@@ -73,16 +73,39 @@ export async function POST(req: Request) {
   }
 }
 
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const matchNumber = searchParams.get('matchNumber');
+    const id = searchParams.get('id');
+
+    if (id) {
+      db.prepare('DELETE FROM reports WHERE id = ?').run(id);
+      db.prepare('DELETE FROM drafts WHERE id = ?').run(id);
+      return NextResponse.json({ success: true });
+    }
+
+    if (matchNumber) {
+      db.prepare('DELETE FROM matches WHERE matchNumber = ?').run(matchNumber);
+      return NextResponse.json({ success: true });
+    }
+    return NextResponse.json({ error: 'ID or Match number required' }, { status: 400 });
+  } catch (error) {
+    console.error('Error in API DELETE:', error);
+    return NextResponse.json({ error: 'Failed to delete record' }, { status: 500 });
+  }
+}
+
 export async function GET() {
   try {
     const rawReports = db.prepare('SELECT * FROM reports ORDER BY createdAt DESC').all();
     const rawDrafts = db.prepare('SELECT * FROM drafts').all();
-    const matchRow: any = db.prepare('SELECT * FROM matches WHERE id = 1').get();
+    const matchRows: any[] = db.prepare('SELECT * FROM matches ORDER BY matchNumber ASC').all();
     
-    const currentMatch = matchRow ? {
-      matchNumber: matchRow.matchNumber,
-      teams: matchRow.teams.split(',').map((t: string) => parseInt(t, 10))
-    } : { matchNumber: 0, teams: [] };
+    const matches = matchRows.map(row => ({
+      matchNumber: row.matchNumber,
+      teams: row.teams.split(',').map((t: string) => parseInt(t, 10))
+    }));
 
     const mapRecord = (r: any) => ({
       ...r,
@@ -96,7 +119,7 @@ export async function GET() {
         ...rawReports.map(mapRecord),
         ...rawDrafts.map(mapRecord)
       ], 
-      currentMatch 
+      matches 
     });
   } catch (error) {
     console.error('Error in API GET:', error);

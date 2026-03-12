@@ -84,6 +84,24 @@ function ScoutForm() {
     }
   };
 
+  const handleDeleteDraft = async () => {
+    if (!confirm("Are you sure you want to delete this draft? This action cannot be undone.")) return;
+    
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/scout?id=${formData.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        alert("Draft deleted successfully.");
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting draft.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSave = async (status: 'IN_PROGRESS' | 'COMPLETED') => {
     if (!formData.scouterName || !formData.matchNumber || !formData.teamNumber) {
       alert("Please fill out scouter name, match, and team numbers!");
@@ -102,8 +120,6 @@ function ScoutForm() {
           setFormData(prev => ({ ...prev, status: 'COMPLETED' }));
           alert("Scouting report SUBMITTED!");
           router.push('/dashboard');
-        } else {
-          alert("Draft saved manually.");
         }
       }
     } catch (err) {
@@ -117,7 +133,7 @@ function ScoutForm() {
   if (isInitializing) return <div className="p-12 text-center text-2xl font-black italic animate-pulse">Initializing Strategy Interface...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto pb-24 px-4">
+    <div className="max-w-3xl mx-auto pb-32 px-4">
       {/* Header */}
       <div className="mb-8 flex items-center justify-between border-b-4 border-black pb-4 mt-4">
         <div className="flex items-center gap-2">
@@ -129,10 +145,18 @@ function ScoutForm() {
           </button>
           <h1 className="text-3xl font-black italic uppercase tracking-tighter text-primary">Strategic Scout</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
           <div className={`px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1 ${formData.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
             {formData.status === 'IN_PROGRESS' ? <><Clock size={12} /> Editing Draft</> : <><CheckCircle size={12} /> Completed</>}
           </div>
+          {formData.status === 'IN_PROGRESS' && (
+            <button 
+              onClick={handleDeleteDraft}
+              className="px-3 py-1 rounded-full text-xs font-black uppercase bg-red-100 text-red-700 hover:bg-red-200 transition-colors flex items-center gap-1"
+            >
+              Delete Draft
+            </button>
+          )}
         </div>
       </div>
 
@@ -239,18 +263,11 @@ function ScoutForm() {
         {/* Submission Bar */}
         <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t-2 border-gray-100 p-4 flex gap-4 z-50">
           <button
-            onClick={() => handleSave('IN_PROGRESS')}
-            disabled={loading}
-            className="flex-1 bg-gray-100 hover:bg-gray-200 text-black font-black uppercase p-4 rounded-2xl transition-all active:scale-95 text-sm"
-          >
-            {loading ? '...' : 'Save Draft'}
-          </button>
-          <button
             onClick={() => handleSave('COMPLETED')}
             disabled={loading}
-            className="flex-[2] bg-primary hover:bg-primary-dark text-white font-black uppercase p-4 rounded-2xl shadow-lg shadow-red-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+            className="w-full bg-primary hover:bg-primary-dark text-white font-black uppercase p-5 rounded-2xl shadow-xl shadow-red-200 transition-all active:scale-95 flex items-center justify-center gap-2 text-lg"
           >
-            {loading ? 'Syncing...' : <><CheckCircle size={20} /> Submit & Close</>}
+            {loading ? 'Syncing...' : <><CheckCircle size={24} /> Finalize & Submit Report</>}
           </button>
         </div>
       </div>

@@ -13,8 +13,8 @@ const db = new Database(dbPath);
 // Initialize Schema
 db.exec(`
   CREATE TABLE IF NOT EXISTS matches (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
-    matchNumber INTEGER,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    matchNumber INTEGER UNIQUE,
     teams TEXT
   );
 
