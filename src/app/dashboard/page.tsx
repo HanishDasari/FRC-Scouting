@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Settings, Users, ClipboardCheck, Info, X, Download } from 'lucide-react';
 
 type ScoutReport = {
@@ -30,6 +31,7 @@ const S = {
 };
 
 export default function Dashboard() {
+  const router = useRouter();
   const [reports, setReports] = useState<ScoutReport[]>([]);
   const [matches, setMatches] = useState<MatchConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,9 +102,9 @@ export default function Dashboard() {
     }[status];
 
     return (
-      <Link
-        href={`/scout?team=${teamNum}&match=${matchNumber}${reportId ? `&id=${reportId}` : ''}`}
-        className="group relative block p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 active:scale-95"
+      <div
+        onClick={() => router.push(`/scout?team=${teamNum}&match=${matchNumber}${reportId ? `&id=${reportId}` : ''}`)}
+        className="cursor-pointer group relative block p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 active:scale-95"
         style={{ background: colors.bg, border: `1.5px solid ${colors.border}`, boxShadow: `0 0 20px ${colors.bg}` }}
       >
         {status === 'IN_PROGRESS' && reportId && (
@@ -124,7 +126,7 @@ export default function Dashboard() {
           </span>
           <ClipboardCheck size={12} style={{ color: colors.accent }} />
         </div>
-      </Link>
+      </div>
     );
   };
 
