@@ -8,7 +8,6 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Lovat Scouting | 6905',
   description: 'FRC Scouting platform for Team 6905, tailored for the 2026 Rebuilt game.',
-  manifest: '/manifest.json',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

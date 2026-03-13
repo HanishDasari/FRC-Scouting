@@ -90,7 +90,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
     console.error('POST error:', error);
-    return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
@@ -112,7 +112,7 @@ export async function DELETE(req: Request) {
     }
     return NextResponse.json({ error: 'ID or Match number required' }, { status: 400 });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to delete' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
@@ -136,6 +136,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error('GET error:', error);
-    return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
