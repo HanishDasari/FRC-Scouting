@@ -1,128 +1,141 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { query, initDB } from '@/lib/db';
 
-// POST: Save a scouting report or update match configuration
+let initialized = false;
+async function ensureInit() {
+  if (!initialized) { await initDB(); initialized = true; }
+}
+
 export async function POST(req: Request) {
   try {
+    await ensureInit();
     const body = await req.json();
-    
-    // Check if we are updating the current match roster
+
     if (body.type === 'SET_MATCH') {
       const matchNumber = parseInt(body.matchNumber, 10);
       const teams = body.teams.map((t: any) => t.toString()).join(',');
-      db.prepare('INSERT OR REPLACE INTO matches (matchNumber, teams) VALUES (?, ?)').run(matchNumber, teams);
+      await query(
+        `INSERT INTO matches ("matchNumber", teams) VALUES ($1, $2)
+         ON CONFLICT ("matchNumber") DO UPDATE SET teams = $2`,
+        [matchNumber, teams]
+      );
       return NextResponse.json({ success: true });
     }
 
-    // Handle Scouting Report (Draft or Final)
-    const record = {
+    const r: any = {
       id: body.id,
       status: body.status || 'IN_PROGRESS',
       scouterName: body.scouterName || '',
-      matchNumber: parseInt(body.matchNumber, 10) || 0,
       teamNumber: parseInt(body.teamNumber, 10) || 0,
-      autoL1: parseInt(body.autoL1, 10) || 0,
-      autoL2: parseInt(body.autoL2, 10) || 0,
-      autoL3: parseInt(body.autoL3, 10) || 0,
-      autoMiss: parseInt(body.autoMiss, 10) || 0,
-      leaveLine: body.leaveLine ? 1 : 0,
-      teleopL1: parseInt(body.teleopL1, 10) || 0,
-      teleopL2: parseInt(body.teleopL2, 10) || 0,
-      teleopL3: parseInt(body.teleopL3, 10) || 0,
-      teleopMiss: parseInt(body.teleopMiss, 10) || 0,
-      cycleSpeed: body.cycleSpeed || 'AVERAGE',
-      driverSkill: parseInt(body.driverSkill, 10) || 3,
-      defense: parseInt(body.defense, 10) || 3,
-      climbStatus: body.climbStatus || 'NONE',
-      notes: body.notes || ''
+      matchNumber: parseInt(body.matchNumber, 10) || 0,
+      gameStrategy: body.gameStrategy || '',
+      drivetrainType: body.drivetrainType || '',
+      robotWeight: body.robotWeight || '',
+      scoringRange: body.scoringRange || '',
+      storageCapacity: body.storageCapacity || '',
+      outtakeType: body.outtakeType || '',
+      driverExperience: body.driverExperience || '',
+      autoDescription: body.autoDescription || '',
+      autoStartPositions: body.autoStartPositions || '',
+      autoAccuracy: body.autoAccuracy || '',
+      hasHang: !!body.hasHang,
+      shootingAccuracy: body.shootingAccuracy || '',
+      cycleTime: body.cycleTime || '',
+      intakeType: body.intakeType || '',
+      avgFuelScored: body.avgFuelScored || '',
+      hasVision: !!body.hasVision,
+      hasMajorIssues: !!body.hasMajorIssues,
+      commonIssue: body.commonIssue || '',
     };
 
-    if (record.status === 'IN_PROGRESS') {
-      db.prepare(`
-        INSERT OR REPLACE INTO drafts (
-          id, status, scouterName, matchNumber, teamNumber, autoL1, autoL2, autoL3, autoMiss, leaveLine,
-          teleopL1, teleopL2, teleopL3, teleopMiss, cycleSpeed, driverSkill, defense, climbStatus, notes, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        record.id, 'IN_PROGRESS', record.scouterName, record.matchNumber, record.teamNumber,
-        record.autoL1, record.autoL2, record.autoL3, record.autoMiss, record.leaveLine,
-        record.teleopL1, record.teleopL2, record.teleopL3, record.teleopMiss,
-        record.cycleSpeed, record.driverSkill, record.defense, record.climbStatus, record.notes,
-        new Date().toISOString()
+    if (r.status === 'IN_PROGRESS') {
+      await query(`
+        INSERT INTO drafts (id, status, "scouterName", "teamNumber", "matchNumber", "gameStrategy", "drivetrainType",
+          "robotWeight", "scoringRange", "storageCapacity", "outtakeType", "driverExperience", "autoDescription",
+          "autoStartPositions", "autoAccuracy", "hasHang", "shootingAccuracy", "cycleTime", "intakeType",
+          "avgFuelScored", "hasVision", "hasMajorIssues", "commonIssue", "updatedAt")
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
+        ON CONFLICT (id) DO UPDATE SET
+          status=$2, "scouterName"=$3, "teamNumber"=$4, "matchNumber"=$5, "gameStrategy"=$6, "drivetrainType"=$7,
+          "robotWeight"=$8, "scoringRange"=$9, "storageCapacity"=$10, "outtakeType"=$11, "driverExperience"=$12,
+          "autoDescription"=$13, "autoStartPositions"=$14, "autoAccuracy"=$15, "hasHang"=$16, "shootingAccuracy"=$17,
+          "cycleTime"=$18, "intakeType"=$19, "avgFuelScored"=$20, "hasVision"=$21, "hasMajorIssues"=$22,
+          "commonIssue"=$23, "updatedAt"=$24`,
+        [r.id, 'IN_PROGRESS', r.scouterName, r.teamNumber, r.matchNumber, r.gameStrategy, r.drivetrainType,
+         r.robotWeight, r.scoringRange, r.storageCapacity, r.outtakeType, r.driverExperience, r.autoDescription,
+         r.autoStartPositions, r.autoAccuracy, r.hasHang, r.shootingAccuracy, r.cycleTime, r.intakeType,
+         r.avgFuelScored, r.hasVision, r.hasMajorIssues, r.commonIssue, new Date().toISOString()]
       );
     } else {
-      db.prepare(`
-        INSERT OR REPLACE INTO reports (
-          id, status, scouterName, matchNumber, teamNumber, autoL1, autoL2, autoL3, autoMiss, leaveLine,
-          teleopL1, teleopL2, teleopL3, teleopMiss, cycleSpeed, driverSkill, defense, climbStatus, notes, createdAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        record.id, 'COMPLETED', record.scouterName, record.matchNumber, record.teamNumber,
-        record.autoL1, record.autoL2, record.autoL3, record.autoMiss, record.leaveLine,
-        record.teleopL1, record.teleopL2, record.teleopL3, record.teleopMiss,
-        record.cycleSpeed, record.driverSkill, record.defense, record.climbStatus, record.notes,
-        new Date().toISOString()
+      await query(`
+        INSERT INTO reports (id, status, "scouterName", "teamNumber", "matchNumber", "gameStrategy", "drivetrainType",
+          "robotWeight", "scoringRange", "storageCapacity", "outtakeType", "driverExperience", "autoDescription",
+          "autoStartPositions", "autoAccuracy", "hasHang", "shootingAccuracy", "cycleTime", "intakeType",
+          "avgFuelScored", "hasVision", "hasMajorIssues", "commonIssue", "createdAt")
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
+        ON CONFLICT (id) DO UPDATE SET
+          status=$2, "scouterName"=$3, "teamNumber"=$4, "matchNumber"=$5, "gameStrategy"=$6, "drivetrainType"=$7,
+          "robotWeight"=$8, "scoringRange"=$9, "storageCapacity"=$10, "outtakeType"=$11, "driverExperience"=$12,
+          "autoDescription"=$13, "autoStartPositions"=$14, "autoAccuracy"=$15, "hasHang"=$16, "shootingAccuracy"=$17,
+          "cycleTime"=$18, "intakeType"=$19, "avgFuelScored"=$20, "hasVision"=$21, "hasMajorIssues"=$22,
+          "commonIssue"=$23, "createdAt"=$24`,
+        [r.id, 'COMPLETED', r.scouterName, r.teamNumber, r.matchNumber, r.gameStrategy, r.drivetrainType,
+         r.robotWeight, r.scoringRange, r.storageCapacity, r.outtakeType, r.driverExperience, r.autoDescription,
+         r.autoStartPositions, r.autoAccuracy, r.hasHang, r.shootingAccuracy, r.cycleTime, r.intakeType,
+         r.avgFuelScored, r.hasVision, r.hasMajorIssues, r.commonIssue, new Date().toISOString()]
       );
-      db.prepare('DELETE FROM drafts WHERE id = ?').run(record.id);
+      await query('DELETE FROM drafts WHERE id = $1', [r.id]);
     }
-    
+
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
-    console.error('Error in API POST:', error);
+    console.error('POST error:', error);
     return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request) {
   try {
+    await ensureInit();
     const { searchParams } = new URL(req.url);
     const matchNumber = searchParams.get('matchNumber');
     const id = searchParams.get('id');
 
     if (id) {
-      db.prepare('DELETE FROM reports WHERE id = ?').run(id);
-      db.prepare('DELETE FROM drafts WHERE id = ?').run(id);
+      await query('DELETE FROM reports WHERE id = $1', [id]);
+      await query('DELETE FROM drafts WHERE id = $1', [id]);
       return NextResponse.json({ success: true });
     }
-
     if (matchNumber) {
-      db.prepare('DELETE FROM matches WHERE matchNumber = ?').run(matchNumber);
+      await query('DELETE FROM matches WHERE "matchNumber" = $1', [parseInt(matchNumber, 10)]);
       return NextResponse.json({ success: true });
     }
     return NextResponse.json({ error: 'ID or Match number required' }, { status: 400 });
   } catch (error) {
-    console.error('Error in API DELETE:', error);
-    return NextResponse.json({ error: 'Failed to delete record' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete' }, { status: 500 });
   }
 }
 
 export async function GET() {
   try {
-    const rawReports = db.prepare('SELECT * FROM reports ORDER BY createdAt DESC').all();
-    const rawDrafts = db.prepare('SELECT * FROM drafts').all();
-    const matchRows: any[] = db.prepare('SELECT * FROM matches ORDER BY matchNumber ASC').all();
-    
-    const matches = matchRows.map(row => ({
+    await ensureInit();
+    const [reportsRes, draftsRes, matchesRes] = await Promise.all([
+      query('SELECT * FROM reports ORDER BY "createdAt" DESC'),
+      query('SELECT * FROM drafts ORDER BY "updatedAt" DESC'),
+      query('SELECT * FROM matches ORDER BY "matchNumber" ASC'),
+    ]);
+
+    const matches = matchesRes.rows.map((row: any) => ({
       matchNumber: row.matchNumber,
       teams: row.teams.split(',').map((t: string) => parseInt(t, 10))
     }));
 
-    const mapRecord = (r: any) => ({
-      ...r,
-      leaveLine: r.leaveLine === 1,
-      matchNumber: parseInt(r.matchNumber, 10),
-      teamNumber: parseInt(r.teamNumber, 10)
-    });
-    
-    return NextResponse.json({ 
-      reports: [
-        ...rawReports.map(mapRecord),
-        ...rawDrafts.map(mapRecord)
-      ], 
-      matches 
+    return NextResponse.json({
+      reports: [...reportsRes.rows, ...draftsRes.rows],
+      matches
     });
   } catch (error) {
-    console.error('Error in API GET:', error);
+    console.error('GET error:', error);
     return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
   }
 }

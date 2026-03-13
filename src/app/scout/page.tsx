@@ -2,272 +2,242 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Save, Plus, Minus, CheckCircle, Clock, ChevronLeft } from 'lucide-react';
+import { CheckCircle, Clock, ChevronLeft } from 'lucide-react';
+
+const CARD = { background: '#13131a', border: '1.5px solid #1e1e2e' } as React.CSSProperties;
+const INPUT_CLS = 'w-full p-4 rounded-2xl font-bold outline-none text-white';
+const INPUT_STYLE = { background: '#0d0d14', border: '1.5px solid #1e1e2e', color: '#f1f5f9' } as React.CSSProperties;
+const LABEL_CLS = 'block text-xs font-black uppercase mb-2' as const;
 
 function ScoutForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
-  
+
   const [formData, setFormData] = useState({
-    id: '', 
+    id: '',
     status: 'IN_PROGRESS',
     scouterName: '',
-    matchNumber: searchParams.get('match') || '',
     teamNumber: searchParams.get('team') || '',
-    autoL1: 0, autoL2: 0, autoL3: 0, autoMiss: 0,
-    leaveLine: false,
-    teleopL1: 0, teleopL2: 0, teleopL3: 0, teleopMiss: 0,
-    cycleSpeed: 'AVERAGE',
-    driverSkill: 3,
-    defense: 3,
-    climbStatus: 'NONE',
-    notes: ''
+    matchNumber: searchParams.get('match') || '',
+    gameStrategy: '',
+    drivetrainType: '',
+    robotWeight: '',
+    scoringRange: '',
+    storageCapacity: '',
+    outtakeType: '',
+    driverExperience: '',
+    autoDescription: '',
+    autoStartPositions: '',
+    autoAccuracy: '',
+    hasHang: false,
+    shootingAccuracy: '',
+    cycleTime: '',
+    intakeType: '',
+    avgFuelScored: '',
+    hasVision: false,
+    hasMajorIssues: false,
+    commonIssue: '',
   });
 
-  // 1. Initial Load: Either fetch existing or generate new ID
   useEffect(() => {
     const reportId = searchParams.get('id');
     if (reportId) {
       fetch('/api/scout')
-        .then(res => res.json())
+        .then(r => r.json())
         .then(data => {
           const existing = data.reports.find((r: any) => r.id === reportId);
-          if (existing) {
-            setFormData(existing);
-          }
+          if (existing) setFormData(existing);
           setIsInitializing(false);
         })
         .catch(() => setIsInitializing(false));
     } else {
-      setFormData(prev => ({
-        ...prev,
-        id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36)
-      }));
+      setFormData(prev => ({ ...prev, id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36) }));
       setIsInitializing(false);
     }
   }, [searchParams]);
 
-  // 2. Auto-Save Logic: Debounced save as IN_PROGRESS
   useEffect(() => {
-    // Don't auto-save while loading initial data or if final submission done
-    if (isInitializing || formData.status === 'COMPLETED' || !formData.id) return;
-    
-    // Only auto-save if we have the critical fields
-    if (!formData.matchNumber || !formData.teamNumber) return;
-
-    const timeout = setTimeout(async () => {
+    if (isInitializing || formData.status === 'COMPLETED' || !formData.id || !formData.matchNumber || !formData.teamNumber) return;
+    const t = setTimeout(async () => {
       try {
-        await fetch('/api/scout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...formData, status: 'IN_PROGRESS' }),
-        });
-      } catch (err) {
-        console.error("Auto-save failed:", err);
-      }
+        await fetch('/api/scout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...formData, status: 'IN_PROGRESS' }) });
+      } catch {}
     }, 1500);
-
-    return () => clearTimeout(timeout);
+    return () => clearTimeout(t);
   }, [formData, isInitializing]);
 
-  const increment = (field: keyof typeof formData) => {
-    if (typeof formData[field] === 'number') {
-      setFormData(prev => ({ ...prev, [field]: (prev[field] as number) + 1 }));
-    }
-  };
-
-  const decrement = (field: keyof typeof formData) => {
-    if (typeof formData[field] === 'number') {
-      setFormData(prev => ({ ...prev, [field]: Math.max(0, (prev[field] as number) - 1) }));
-    }
-  };
-
-  const handleDeleteDraft = async () => {
-    if (!confirm("Are you sure you want to delete this draft? This action cannot be undone.")) return;
-    
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/scout?id=${formData.id}`, { method: 'DELETE' });
-      if (res.ok) {
-        alert("Draft deleted successfully.");
-        router.push('/dashboard');
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error deleting draft.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const set = (field: string, value: any) => setFormData(prev => ({ ...prev, [field]: value }));
 
   const handleSave = async (status: 'IN_PROGRESS' | 'COMPLETED') => {
-    if (!formData.scouterName || !formData.matchNumber || !formData.teamNumber) {
-      alert("Please fill out scouter name, match, and team numbers!");
-      return;
-    }
-
+    if (!formData.scouterName || !formData.teamNumber) { alert('Please fill out scouter name and team number!'); return; }
     setLoading(true);
     try {
-      const res = await fetch('/api/scout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, status }),
-      });
-      if (res.ok) {
-        if (status === 'COMPLETED') {
-          setFormData(prev => ({ ...prev, status: 'COMPLETED' }));
-          alert("Scouting report SUBMITTED!");
-          router.push('/dashboard');
-        }
+      const res = await fetch('/api/scout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...formData, status }) });
+      if (res.ok && status === 'COMPLETED') {
+        setFormData(prev => ({ ...prev, status: 'COMPLETED' }));
+        alert('Scouting report SUBMITTED!');
+        router.push('/dashboard');
       }
-    } catch (err) {
-      console.error(err);
-      alert("Error syncing data.");
-    } finally {
-      setLoading(false);
-    }
+    } catch { alert('Error syncing data.'); }
+    finally { setLoading(false); }
   };
 
-  if (isInitializing) return <div className="p-12 text-center text-2xl font-black italic animate-pulse">Initializing Strategy Interface...</div>;
+  if (isInitializing) return (
+    <div className="flex items-center justify-center min-h-screen" style={{ background: '#0a0a0f' }}>
+      <div className="text-xl font-black italic uppercase animate-pulse" style={{ color: '#e11d48' }}>Initializing...</div>
+    </div>
+  );
+
+  const Chips = ({ field, options, label }: { field: string; options: string[]; label: string }) => (
+    <div>
+      <label className={LABEL_CLS} style={{ color: '#64748b' }}>{label}</label>
+      <div className="flex flex-wrap gap-2">
+        {options.map(o => (
+          <button key={o} type="button" onClick={() => set(field, o)}
+            className="px-4 py-2 rounded-xl font-black uppercase text-xs transition-all"
+            style={(formData as any)[field] === o
+              ? { background: '#e11d48', color: '#fff', border: '1.5px solid #e11d48' }
+              : { background: '#0d0d14', color: '#64748b', border: '1.5px solid #1e1e2e' }}>
+            {o}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const YesNo = ({ field, label }: { field: string; label: string }) => (
+    <div className="flex items-center justify-between p-4 rounded-2xl" style={CARD}>
+      <label className="font-black uppercase text-sm text-white">{label}</label>
+      <div className="flex gap-2">
+        {['YES', 'NO'].map(v => {
+          const isVal = (formData as any)[field] === (v === 'YES');
+          return (
+            <button key={v} type="button" onClick={() => set(field, v === 'YES')}
+              className="px-5 py-2 rounded-xl font-black uppercase text-xs transition-all"
+              style={isVal
+                ? { background: v === 'YES' ? '#22c55e' : '#e11d48', color: '#fff', border: `1.5px solid ${v === 'YES' ? '#22c55e' : '#e11d48'}` }
+                : { background: '#0d0d14', color: '#475569', border: '1.5px solid #1e1e2e' }}>
+              {v}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const Section = ({ title, children, accent = '#e11d48' }: { title: string; children: React.ReactNode; accent?: string }) => (
+    <div className="p-6 rounded-3xl space-y-5" style={CARD}>
+      <h2 className="text-base font-black uppercase italic pb-3" style={{ borderBottom: `1.5px solid ${accent}33`, color: accent }}>
+        {title}
+      </h2>
+      {children}
+    </div>
+  );
 
   return (
-    <div className="max-w-3xl mx-auto pb-32 px-4">
+    <div className="max-w-3xl mx-auto pb-32 px-4" style={{ background: '#0a0a0f', minHeight: '100vh' }}>
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between border-b-4 border-black pb-4 mt-4">
+      <div className="mb-8 flex items-center justify-between pt-4 pb-4" style={{ borderBottom: '1.5px solid #1e1e2e' }}>
         <div className="flex items-center gap-2">
-          <button 
-            onClick={() => router.push('/dashboard')}
-            className="p-2 hover:bg-gray-100 rounded-full transition-all active:scale-90"
-          >
-            <ChevronLeft size={28} />
+          <button onClick={() => router.push('/dashboard')} className="p-2 rounded-full transition-all active:scale-90" style={{ background: '#13131a' }}>
+            <ChevronLeft size={26} color="#f1f5f9" />
           </button>
-          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-primary">Strategic Scout</h1>
+          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">Pit Scout</h1>
         </div>
-        <div className="flex items-center gap-3">
-          <div className={`px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1 ${formData.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
-            {formData.status === 'IN_PROGRESS' ? <><Clock size={12} /> Editing Draft</> : <><CheckCircle size={12} /> Completed</>}
-          </div>
-          {formData.status === 'IN_PROGRESS' && (
-            <button 
-              onClick={handleDeleteDraft}
-              className="px-3 py-1 rounded-full text-xs font-black uppercase bg-red-100 text-red-700 hover:bg-red-200 transition-colors flex items-center gap-1"
-            >
-              Delete Draft
-            </button>
-          )}
+        <div className="px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1"
+          style={formData.status === 'IN_PROGRESS'
+            ? { background: 'rgba(59,130,246,0.15)', color: '#3b82f6' }
+            : { background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>
+          {formData.status === 'IN_PROGRESS' ? <><Clock size={11} /> Draft</> : <><CheckCircle size={11} /> Submitted</>}
         </div>
       </div>
 
-      <div className="space-y-8">
-        {/* Phase 0: Match Info */}
-        <div className="bg-white p-6 rounded-3xl border-2 border-gray-100 shadow-xl">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-xs font-black uppercase text-gray-500 mb-2">Scouter</label>
-              <input type="text" placeholder="Your Name" value={formData.scouterName}
-                onChange={e => setFormData({ ...formData, scouterName: e.target.value })}
-                className="w-full p-4 border-2 border-gray-100 rounded-2xl font-bold focus:border-black outline-none bg-gray-50 text-black" />
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase text-gray-500 mb-2">Match #</label>
-              <input type="number" value={formData.matchNumber}
-                readOnly={!!searchParams.get('match')}
-                onChange={e => setFormData({ ...formData, matchNumber: e.target.value })}
-                className="w-full p-4 border-2 border-gray-100 rounded-2xl font-black bg-gray-50 text-black text-2xl" />
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase text-gray-500 mb-2">Team #</label>
-              <input type="number" value={formData.teamNumber}
-                readOnly={!!searchParams.get('team')}
-                onChange={e => setFormData({ ...formData, teamNumber: e.target.value })}
-                className="w-full p-4 border-2 border-gray-100 rounded-2xl font-black bg-gray-50 text-black text-2xl" />
-            </div>
-          </div>
-        </div>
-
-        {/* Phase 1: Autonomous */}
-        <div className="bg-gray-50 p-6 rounded-3xl border-2 border-gray-200">
-          <h2 className="text-xl font-black uppercase italic mb-6 border-b-2 border-black pb-2">Autonomous</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="space-y-5">
+        <Section title="Scout Info" accent="#f59e0b">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { k: 'autoL1', l: 'L1', c: 'bg-red-500' },
-              { k: 'autoL2', l: 'L2', c: 'bg-red-600' },
-              { k: 'autoL3', l: 'L3', c: 'bg-red-700' },
-              { k: 'autoMiss', l: 'Miss', c: 'bg-black' }
-            ].map(f => (
-              <div key={f.k} className={`${f.c} p-4 rounded-2xl text-white text-center flex flex-col items-center gap-2 shadow-lg`}>
-                <span className="font-black text-xs uppercase opacity-80">{f.l}</span>
-                <div className="flex items-center gap-4">
-                  <button onClick={() => decrement(f.k as any)} className="bg-white/20 p-2 rounded-full active:scale-75 transition-all"><Minus size={16} /></button>
-                  <span className="text-3xl font-black">{(formData as any)[f.k]}</span>
-                  <button onClick={() => increment(f.k as any)} className="bg-white/20 p-2 rounded-full active:scale-75 transition-all"><Plus size={16} /></button>
-                </div>
+              { field: 'scouterName', label: 'Your Name', placeholder: 'Scouter Name', type: 'text' },
+              { field: 'teamNumber', label: 'Team #', placeholder: 'e.g. 254', type: 'number' },
+              { field: 'matchNumber', label: 'Match #', placeholder: 'e.g. 1', type: 'number' },
+            ].map(({ field, label, placeholder, type }) => (
+              <div key={field}>
+                <label className={LABEL_CLS} style={{ color: '#64748b' }}>{label}</label>
+                <input type={type} placeholder={placeholder} value={(formData as any)[field]}
+                  readOnly={(field === 'teamNumber' && !!searchParams.get('team')) || (field === 'matchNumber' && !!searchParams.get('match'))}
+                  onChange={e => set(field, e.target.value)}
+                  className={INPUT_CLS} style={INPUT_STYLE} />
               </div>
             ))}
           </div>
-          <div className="mt-6 flex items-center gap-3">
-            <input type="checkbox" id="leave" checked={formData.leaveLine} onChange={e => setFormData({ ...formData, leaveLine: e.target.checked })} className="w-6 h-6 accent-primary" />
-            <label htmlFor="leave" className="font-black uppercase text-sm italic">Exited Start Zone (Leave)</label>
+        </Section>
+
+        <Section title="Robot Info" accent="#e11d48">
+          <Chips field="gameStrategy" label="Game Strategy / Role" options={['Offensive', 'Defense', 'Hybrid', 'Support']} />
+          <Chips field="drivetrainType" label="Drive Train Type" options={['Swerve', 'Tank', 'Mecanum', 'Other']} />
+          <div>
+            <label className={LABEL_CLS} style={{ color: '#64748b' }}>Robot Weight (lbs)</label>
+            <input type="text" placeholder="e.g. 120 lbs" value={formData.robotWeight} onChange={e => set('robotWeight', e.target.value)} className={INPUT_CLS} style={INPUT_STYLE} />
           </div>
-        </div>
-
-        {/* Phase 2: Teleop Strategic */}
-        <div className="bg-white p-6 rounded-3xl border-2 border-gray-100 shadow-xl">
-          <h2 className="text-xl font-black uppercase italic mb-6 border-b-2 border-black pb-2">Teleop & Strategy</h2>
-
-          <div className="space-y-8">
-            <div>
-              <label className="block text-xs font-black uppercase text-gray-500 mb-3 text-center">Cycle Speed</label>
-              <div className="flex gap-2">
-                {['SLOW', 'AVERAGE', 'FAST'].map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setFormData({ ...formData, cycleSpeed: s })}
-                    className={`flex-1 p-4 rounded-xl font-black uppercase text-sm border-2 transition-all ${formData.cycleSpeed === s ? 'bg-black text-white border-black' : 'bg-gray-50 border-gray-100 text-gray-400'}`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-              <div>
-                <label className="block text-xs font-black uppercase text-gray-400 mb-2">Driver Skill (1-5)</label>
-                <input type="range" min="1" max="5" value={formData.driverSkill} onChange={e => setFormData({ ...formData, driverSkill: parseInt(e.target.value) })} className="w-full accent-primary h-4 bg-gray-100 rounded-lg appearance-none cursor-pointer" />
-                <div className="flex justify-between text-[10px] font-black uppercase text-gray-400 mt-2"><span>Rookie</span><span>Elite</span></div>
-              </div>
-              <div>
-                <label className="block text-xs font-black uppercase text-gray-400 mb-2">Defensive Play</label>
-                <input type="range" min="1" max="5" value={formData.defense} onChange={e => setFormData({ ...formData, defense: parseInt(e.target.value) })} className="w-full accent-black h-4 bg-gray-100 rounded-lg appearance-none cursor-pointer" />
-                <div className="flex justify-between text-[10px] font-black uppercase text-gray-400 mt-2"><span>Passive</span><span>Lockdown</span></div>
-              </div>
-            </div>
+          <Chips field="scoringRange" label="Scoring Range" options={['Short', 'Mid Field', 'Long']} />
+          <div>
+            <label className={LABEL_CLS} style={{ color: '#64748b' }}>Storage Capacity (# of game pieces)</label>
+            <input type="text" placeholder="e.g. 2 notes" value={formData.storageCapacity} onChange={e => set('storageCapacity', e.target.value)} className={INPUT_CLS} style={INPUT_STYLE} />
           </div>
-        </div>
+          <div>
+            <label className={LABEL_CLS} style={{ color: '#64748b' }}>Outtake Type</label>
+            <input type="text" placeholder="e.g. Roller, Catapult..." value={formData.outtakeType} onChange={e => set('outtakeType', e.target.value)} className={INPUT_CLS} style={INPUT_STYLE} />
+          </div>
+          <Chips field="intakeType" label="Intake Type" options={['Ground', 'Human Player', 'Both']} />
+          <div>
+            <label className={LABEL_CLS} style={{ color: '#64748b' }}>Driver Experience</label>
+            <input type="text" placeholder="e.g. 2 years, first season..." value={formData.driverExperience} onChange={e => set('driverExperience', e.target.value)} className={INPUT_CLS} style={INPUT_STYLE} />
+          </div>
+        </Section>
 
-        {/* Notes */}
-        <div className="bg-gray-50 p-6 rounded-3xl border-2 border-gray-200">
-          <label className="block text-xs font-black uppercase text-gray-500 mb-2 italic">Strategist Notes (How do they score? Weaknesses?)</label>
-          <textarea
-            rows={4}
-            value={formData.notes}
-            onChange={e => setFormData({ ...formData, notes: e.target.value })}
-            className="w-full p-4 rounded-2xl border-2 border-gray-200 focus:border-black outline-none font-medium bg-white text-black"
-            placeholder="e.g. Can score L3 but slow. Very fast intake on floor pieces..."
-          />
-        </div>
+        <Section title="Autonomous" accent="#3b82f6">
+          <div>
+            <label className={LABEL_CLS} style={{ color: '#64748b' }}>What is their auto?</label>
+            <textarea rows={2} value={formData.autoDescription} onChange={e => set('autoDescription', e.target.value)}
+              placeholder="e.g. Leaves the line and scores 1 note..." className="w-full p-4 rounded-2xl font-bold outline-none text-white resize-none"
+              style={{ ...INPUT_STYLE }} />
+          </div>
+          <div>
+            <label className={LABEL_CLS} style={{ color: '#64748b' }}>Starting positions for auto</label>
+            <input type="text" placeholder="e.g. Left, Center, Right" value={formData.autoStartPositions} onChange={e => set('autoStartPositions', e.target.value)} className={INPUT_CLS} style={INPUT_STYLE} />
+          </div>
+          <Chips field="autoAccuracy" label="Auto Accuracy" options={['Low', 'Medium', 'High', 'Consistent']} />
+        </Section>
 
-        {/* Submission Bar */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t-2 border-gray-100 p-4 flex gap-4 z-50">
-          <button
-            onClick={() => handleSave('COMPLETED')}
-            disabled={loading}
-            className="w-full bg-primary hover:bg-primary-dark text-white font-black uppercase p-5 rounded-2xl shadow-xl shadow-red-200 transition-all active:scale-95 flex items-center justify-center gap-2 text-lg"
-          >
-            {loading ? 'Syncing...' : <><CheckCircle size={24} /> Finalize & Submit Report</>}
+        <Section title="Teleop & Performance" accent="#22c55e">
+          <YesNo field="hasHang" label="Do they have hang (climb)?" />
+          <Chips field="shootingAccuracy" label="Shooting Accuracy" options={['Low', 'Medium', 'High', 'Very High']} />
+          <div>
+            <label className={LABEL_CLS} style={{ color: '#64748b' }}>Cycle Time (approx.)</label>
+            <input type="text" placeholder="e.g. ~15 sec" value={formData.cycleTime} onChange={e => set('cycleTime', e.target.value)} className={INPUT_CLS} style={INPUT_STYLE} />
+          </div>
+          <div>
+            <label className={LABEL_CLS} style={{ color: '#64748b' }}>Average Fuel Scored Per Match</label>
+            <input type="text" placeholder="e.g. ~8 notes" value={formData.avgFuelScored} onChange={e => set('avgFuelScored', e.target.value)} className={INPUT_CLS} style={INPUT_STYLE} />
+          </div>
+        </Section>
+
+        <Section title="Tech & Reliability" accent="#f59e0b">
+          <YesNo field="hasVision" label="Do they have vision?" />
+          <YesNo field="hasMajorIssues" label="Major electrical/mechanical issues?" />
+          <div>
+            <label className={LABEL_CLS} style={{ color: '#64748b' }}>Most common issue</label>
+            <input type="text" placeholder="e.g. Belt slipping, connection drops..." value={formData.commonIssue} onChange={e => set('commonIssue', e.target.value)} className={INPUT_CLS} style={INPUT_STYLE} />
+          </div>
+        </Section>
+
+        {/* Submit bar */}
+        <div className="fixed bottom-0 left-0 right-0 p-4 flex z-50" style={{ background: 'rgba(10,10,15,0.85)', backdropFilter: 'blur(12px)', borderTop: '1px solid #1e1e2e' }}>
+          <button onClick={() => handleSave('COMPLETED')} disabled={loading}
+            className="w-full font-black uppercase p-5 rounded-2xl text-lg text-white transition-all active:scale-95 flex items-center justify-center gap-2"
+            style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', boxShadow: '0 10px 40px rgba(225,29,72,0.4)' }}>
+            {loading ? 'Syncing...' : <><CheckCircle size={22} /> Finalize &amp; Submit</>}
           </button>
         </div>
       </div>
@@ -277,7 +247,7 @@ function ScoutForm() {
 
 export default function ScoutPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center font-black animate-pulse">Initializing Interface...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen" style={{ background: '#0a0a0f', color: '#e11d48' }}><div className="font-black animate-pulse uppercase">Loading...</div></div>}>
       <ScoutForm />
     </Suspense>
   );

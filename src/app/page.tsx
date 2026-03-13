@@ -1,37 +1,108 @@
+'use client';
+
 import Link from 'next/link';
 import { Users, ClipboardList, LayoutDashboard } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[85vh] text-center px-4">
-      <div className="mb-12">
-        <h1 className="text-6xl sm:text-8xl font-black uppercase italic tracking-tighter mb-4 leading-none">
-          <span className="text-primary tracking-widest">6905</span><br />STRAT
+    <div className="relative flex flex-col items-center justify-center min-h-[85vh] text-center px-4 overflow-hidden">
+      {/* Giant 6905 watermark */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+        aria-hidden="true"
+      >
+        <span
+          className="text-[28vw] font-black italic leading-none tracking-tighter"
+          style={{
+            color: 'transparent',
+            WebkitTextStroke: '1px rgba(225,29,72,0.12)',
+            background: 'linear-gradient(135deg, rgba(225,29,72,0.07) 0%, rgba(245,158,11,0.05) 100%)',
+            WebkitBackgroundClip: 'text',
+            filter: 'blur(0px)',
+            userSelect: 'none',
+          }}
+        >
+          6905
+        </span>
+      </div>
+
+      {/* Glow blobs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(225,29,72,0.08) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%)' }} />
+
+      <div className="relative z-10 mb-12">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="w-12 h-1" style={{ background: 'linear-gradient(90deg, #e11d48, transparent)' }} />
+          <span className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#e11d48' }}>FRC Albany 2026</span>
+          <div className="w-12 h-1" style={{ background: 'linear-gradient(90deg, transparent, #e11d48)' }} />
+        </div>
+        <h1 className="text-6xl sm:text-8xl font-black uppercase italic tracking-tighter mb-3 leading-none">
+          <span style={{ color: '#e11d48' }}>6905</span>
+          <br />
+          <span className="text-white">SCOUTING</span>
         </h1>
-        <p className="text-xl text-gray-500 font-bold uppercase tracking-widest">FRC Albany 2026 | Rebuilt</p>
+        <p className="text-sm font-bold uppercase tracking-[0.4em]" style={{ color: '#64748b' }}>
+          Rebuilt · Real-Time · Ruthless
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-4xl">
-        <Link href="/setup" className="flex flex-col items-center justify-center p-8 bg-black hover:bg-gray-900 transition-all rounded-3xl shadow-2xl border-2 border-transparent hover:border-primary text-white group active:scale-95">
-          <Users className="mb-4 group-hover:text-primary transition-colors" size={48} />
-          <span className="text-2xl font-black uppercase tracking-widest">Match Setup</span>
-          <span className="text-xs text-gray-400 mt-2 font-bold uppercase">Configure 6-Team Roster</span>
+      <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-5 w-full max-w-4xl">
+        <Link
+          href="/setup"
+          className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95"
+          style={{
+            background: 'linear-gradient(135deg, #1a0a12 0%, #13131a 100%)',
+            borderColor: 'rgba(225,29,72,0.3)',
+            boxShadow: '0 0 0 0 rgba(225,29,72,0)',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(225,29,72,0.2)')}
+          onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(225,29,72,0)')}
+        >
+          <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(225,29,72,0.15)' }}>
+            <Users size={36} style={{ color: '#e11d48' }} />
+          </div>
+          <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Match Setup</span>
+          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Configure 6-Team Roster</span>
         </Link>
 
-        <Link href="/scout" className="flex flex-col items-center justify-center p-8 bg-white hover:bg-gray-50 transition-all rounded-3xl shadow-2xl border-2 border-gray-100 hover:border-primary text-black group active:scale-95">
-          <ClipboardList className="mb-4 group-hover:text-primary transition-colors" size={48} />
-          <span className="text-2xl font-black uppercase tracking-widest">Scout</span>
-          <span className="text-xs text-gray-500 mt-2 font-bold uppercase">Record Strategy Intel</span>
+        <Link
+          href="/scout"
+          className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95"
+          style={{
+            background: 'linear-gradient(135deg, #0d1a0f 0%, #13131a 100%)',
+            borderColor: 'rgba(34,197,94,0.3)',
+            boxShadow: '0 0 0 0 rgba(34,197,94,0)',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(34,197,94,0.15)')}
+          onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(34,197,94,0)')}
+        >
+          <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(34,197,94,0.12)' }}>
+            <ClipboardList size={36} style={{ color: '#22c55e' }} />
+          </div>
+          <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Scout</span>
+          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Record Strategy Intel</span>
         </Link>
 
-        <Link href="/dashboard" className="flex flex-col items-center justify-center p-8 bg-white hover:bg-gray-50 transition-all rounded-3xl shadow-2xl border-2 border-gray-100 hover:border-primary text-black group active:scale-95">
-          <LayoutDashboard className="mb-4 group-hover:text-primary transition-colors" size={48} />
-          <span className="text-2xl font-black uppercase tracking-widest">Status</span>
-          <span className="text-xs text-gray-500 mt-2 font-bold uppercase">Live Alliance Tracking</span>
+        <Link
+          href="/dashboard"
+          className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95"
+          style={{
+            background: 'linear-gradient(135deg, #0a0f1a 0%, #13131a 100%)',
+            borderColor: 'rgba(59,130,246,0.3)',
+            boxShadow: '0 0 0 0 rgba(59,130,246,0)',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(59,130,246,0.15)')}
+          onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(59,130,246,0)')}
+        >
+          <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(59,130,246,0.12)' }}>
+            <LayoutDashboard size={36} style={{ color: '#3b82f6' }} />
+          </div>
+          <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Status</span>
+          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Live Alliance Tracking</span>
         </Link>
       </div>
 
-      <div className="mt-16 text-xs font-black uppercase text-gray-300 tracking-[0.2em]">
+      <div className="relative z-10 mt-14 text-xs font-black uppercase tracking-[0.3em]" style={{ color: '#1e293b' }}>
         Built for the Drive Team and Strategy Lead
       </div>
     </div>

@@ -5,15 +5,20 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-primary-dark: var(--primary-dark);
+  --color-gold: var(--gold);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
-  --primary: #dc2626; /* red-600 */
-  --primary-dark: #b91c1c; /* red-700 */
+  --background: #0a0a0f;
+  --foreground: #f1f5f9;
+  --primary: #e11d48;
+  --primary-dark: #be123c;
+  --gold: #f59e0b;
+  --card-bg: #13131a;
+  --card-border: #1e1e2e;
+  --muted: #94a3b8;
 }
 
 body {
@@ -22,3 +27,8 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0a0f; }
+::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 3px; }

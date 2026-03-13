@@ -1,68 +1,79 @@
-import Database from 'better-sqlite3';
-import path from 'path';
-import fs from 'fs';
+import { Pool } from 'pg';
 
-const dataDir = path.join(process.cwd(), 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
+
+export async function query(text: string, params?: any[]) {
+  const client = await pool.connect();
+  try {
+    return await client.query(text, params);
+  } finally {
+    client.release();
+  }
 }
 
-const dbPath = path.join(dataDir, 'scouting.db');
-const db = new Database(dbPath);
+export async function initDB() {
+  await query(`
+    CREATE TABLE IF NOT EXISTS matches (
+      id SERIAL PRIMARY KEY,
+      "matchNumber" INTEGER UNIQUE,
+      teams TEXT
+    );
+    CREATE TABLE IF NOT EXISTS reports (
+      id TEXT PRIMARY KEY,
+      status TEXT,
+      "scouterName" TEXT,
+      "teamNumber" INTEGER,
+      "matchNumber" INTEGER,
+      "gameStrategy" TEXT,
+      "drivetrainType" TEXT,
+      "robotWeight" TEXT,
+      "scoringRange" TEXT,
+      "storageCapacity" TEXT,
+      "outtakeType" TEXT,
+      "driverExperience" TEXT,
+      "autoDescription" TEXT,
+      "autoStartPositions" TEXT,
+      "autoAccuracy" TEXT,
+      "hasHang" BOOLEAN,
+      "shootingAccuracy" TEXT,
+      "cycleTime" TEXT,
+      "intakeType" TEXT,
+      "avgFuelScored" TEXT,
+      "hasVision" BOOLEAN,
+      "hasMajorIssues" BOOLEAN,
+      "commonIssue" TEXT,
+      "createdAt" TEXT
+    );
+    CREATE TABLE IF NOT EXISTS drafts (
+      id TEXT PRIMARY KEY,
+      status TEXT,
+      "scouterName" TEXT,
+      "teamNumber" INTEGER,
+      "matchNumber" INTEGER,
+      "gameStrategy" TEXT,
+      "drivetrainType" TEXT,
+      "robotWeight" TEXT,
+      "scoringRange" TEXT,
+      "storageCapacity" TEXT,
+      "outtakeType" TEXT,
+      "driverExperience" TEXT,
+      "autoDescription" TEXT,
+      "autoStartPositions" TEXT,
+      "autoAccuracy" TEXT,
+      "hasHang" BOOLEAN,
+      "shootingAccuracy" TEXT,
+      "cycleTime" TEXT,
+      "intakeType" TEXT,
+      "avgFuelScored" TEXT,
+      "hasVision" BOOLEAN,
+      "hasMajorIssues" BOOLEAN,
+      "commonIssue" TEXT,
+      "updatedAt" TEXT
+    );
+  `);
+}
 
-// Initialize Schema
-db.exec(`
-  CREATE TABLE IF NOT EXISTS matches (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    matchNumber INTEGER UNIQUE,
-    teams TEXT
-  );
-
-  CREATE TABLE IF NOT EXISTS reports (
-    id TEXT PRIMARY KEY,
-    status TEXT,
-    scouterName TEXT,
-    matchNumber INTEGER,
-    teamNumber INTEGER,
-    autoL1 INTEGER,
-    autoL2 INTEGER,
-    autoL3 INTEGER,
-    autoMiss INTEGER,
-    leaveLine INTEGER,
-    teleopL1 INTEGER,
-    teleopL2 INTEGER,
-    teleopL3 INTEGER,
-    teleopMiss INTEGER,
-    cycleSpeed TEXT,
-    driverSkill INTEGER,
-    defense INTEGER,
-    climbStatus TEXT,
-    notes TEXT,
-    createdAt TEXT
-  );
-
-  CREATE TABLE IF NOT EXISTS drafts (
-    id TEXT PRIMARY KEY,
-    status TEXT,
-    scouterName TEXT,
-    matchNumber INTEGER,
-    teamNumber INTEGER,
-    autoL1 INTEGER,
-    autoL2 INTEGER,
-    autoL3 INTEGER,
-    autoMiss INTEGER,
-    leaveLine INTEGER,
-    teleopL1 INTEGER,
-    teleopL2 INTEGER,
-    teleopL3 INTEGER,
-    teleopMiss INTEGER,
-    cycleSpeed TEXT,
-    driverSkill INTEGER,
-    defense INTEGER,
-    climbStatus TEXT,
-    notes TEXT,
-    updatedAt TEXT
-  );
-`);
-
-export default db;
+export default pool;

@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Settings, Users, ClipboardCheck, Info, X } from 'lucide-react';
+import { Settings, Users, ClipboardCheck, Info, X, Download } from 'lucide-react';
 
 type ScoutReport = {
   id: string;
@@ -10,9 +10,13 @@ type ScoutReport = {
   teamNumber: number;
   matchNumber: number;
   scouterName: string;
-  autoL1: number; autoL2: number; autoL3: number;
-  teleopL1: number; teleopL2: number; teleopL3: number;
-  climbStatus: string;
+  gameStrategy: string;
+  drivetrainType: string;
+  hasHang: boolean;
+  hasVision: boolean;
+  hasMajorIssues: boolean;
+  shootingAccuracy: string;
+  autoAccuracy: string;
 };
 
 type MatchConfig = {
@@ -20,12 +24,17 @@ type MatchConfig = {
   teams: number[];
 };
 
+const S = {
+  card: { background: '#13131a', border: '1.5px solid #1e1e2e' } as React.CSSProperties,
+  input: 'w-full p-4 rounded-2xl font-bold outline-none' as const,
+};
+
 export default function Dashboard() {
   const [reports, setReports] = useState<ScoutReport[]>([]);
   const [matches, setMatches] = useState<MatchConfig[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchData = () => {
+  const fetchData = useCallback(() => {
     fetch('/api/scout')
       .then(res => res.json())
       .then(data => {
@@ -34,11 +43,27 @@ export default function Dashboard() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+    // Poll every 5 seconds for real-time sync
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  const downloadData = () => {
+    if (!reports || reports.length === 0) { alert('No data available to download.'); return; }
+    const headers = Object.keys(reports[0]).join(',');
+    const rows = reports.map(r => Object.values(r).map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+    const csv = [headers, ...rows].join('\n');
+    const link = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+      download: `scouting_${new Date().toISOString().split('T')[0]}.csv`,
+      style: 'display:none'
+    });
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  };
 
   const deleteMatch = async (matchNumber: number) => {
     if (confirm(`Delete Match ${matchNumber}?`)) {
@@ -48,151 +73,166 @@ export default function Dashboard() {
   };
 
   const getTeamStatus = (teamNum: number, matchNumber: number) => {
-    const teamReports = reports.filter(r => r.teamNumber === teamNum && r.matchNumber === matchNumber);
-    if (teamReports.length === 0) return 'NOT_SCOUTED';
-    if (teamReports.some(r => r.status === 'COMPLETED')) return 'COMPLETED';
+    const r = reports.filter(r => r.teamNumber === teamNum && r.matchNumber === matchNumber);
+    if (r.length === 0) return 'NOT_SCOUTED';
+    if (r.some(r => r.status === 'COMPLETED')) return 'COMPLETED';
     return 'IN_PROGRESS';
   };
 
-  const getReportId = (teamNum: number, matchNumber: number) => {
-    const report = reports.find(r => r.teamNumber === teamNum && r.matchNumber === matchNumber);
-    return report?.id || null;
-  };
+  const getReportId = (teamNum: number, matchNumber: number) =>
+    reports.find(r => r.teamNumber === teamNum && r.matchNumber === matchNumber)?.id || null;
 
   const deleteDraft = async (e: React.MouseEvent, id: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (confirm("Delete this draft?")) {
+    e.preventDefault(); e.stopPropagation();
+    if (confirm('Delete this draft?')) {
       await fetch(`/api/scout?id=${id}`, { method: 'DELETE' });
       fetchData();
     }
   };
 
-  const StatusCard = ({ teamNum, isRed, matchNumber }: { teamNum: number, isRed: boolean, matchNumber: number }) => {
+  const StatusCard = ({ teamNum, isRed, matchNumber }: { teamNum: number; isRed: boolean; matchNumber: number }) => {
     const status = getTeamStatus(teamNum, matchNumber);
     const reportId = getReportId(teamNum, matchNumber);
     const colors = {
-      NOT_SCOUTED: 'bg-red-500 border-red-700 text-white',
-      IN_PROGRESS: 'bg-blue-500 border-blue-700 text-white',
-      COMPLETED: 'bg-green-500 border-green-700 text-white'
-    } as any;
+      NOT_SCOUTED: { bg: 'rgba(225,29,72,0.15)', border: 'rgba(225,29,72,0.4)', accent: '#e11d48', label: 'Awaiting' },
+      IN_PROGRESS:  { bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.4)', accent: '#3b82f6', label: 'Scouting' },
+      COMPLETED:    { bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.4)', accent: '#22c55e', label: 'Secure' },
+    }[status];
 
     return (
-      <Link 
-        href={`/scout?team=${teamNum}&match=${matchNumber}${reportId ? `&id=${reportId}` : ''}`} 
-        className={`group relative overflow-hidden block p-6 rounded-[2rem] shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] transition-all duration-500 hover:-translate-y-3 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.4)] active:scale-95 ${colors[status]}`}
+      <Link
+        href={`/scout?team=${teamNum}&match=${matchNumber}${reportId ? `&id=${reportId}` : ''}`}
+        className="group relative block p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 active:scale-95"
+        style={{ background: colors.bg, border: `1.5px solid ${colors.border}`, boxShadow: `0 0 20px ${colors.bg}` }}
       >
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/20 transition-all duration-500" />
-        
         {status === 'IN_PROGRESS' && reportId && (
-          <button 
-            onClick={(e) => deleteDraft(e, reportId)}
-            className="absolute top-4 right-4 p-2 bg-red-600 rounded-full text-white shadow-lg z-20 hover:scale-110 transition-transform active:scale-90"
-            title="Delete Draft"
+          <button
+            onClick={e => deleteDraft(e, reportId)}
+            className="absolute top-3 right-3 p-1.5 rounded-full z-20 transition-transform hover:scale-110 active:scale-90"
+            style={{ background: '#e11d48' }}
           >
-            <X size={16} strokeWidth={3} />
+            <X size={14} color="white" strokeWidth={3} />
           </button>
         )}
-
-        <div className="relative z-10">
-          <div className="text-[11px] font-black uppercase tracking-[0.2em] opacity-80 mb-1">{isRed ? 'Red' : 'Blue'} Alliance</div>
-          <div className="text-4xl font-black italic tracking-tighter mb-2 drop-shadow-sm">{teamNum}</div>
-          <div className="flex items-center gap-2 font-black uppercase text-[11px] tracking-wider">
-            <span className="bg-white/20 px-2 py-0.5 rounded-full backdrop-blur-md">
-              {status === 'NOT_SCOUTED' && 'Awaiting'}
-              {status === 'IN_PROGRESS' && 'Scouting'}
-              {status === 'COMPLETED' && 'Secure'}
-            </span>
-            <ClipboardCheck size={14} className="opacity-80" />
-          </div>
+        <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: colors.accent }}>
+          {isRed ? 'Red' : 'Blue'} Alliance
+        </div>
+        <div className="text-4xl font-black italic tracking-tighter mb-2 text-white">{teamNum}</div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `${colors.accent}22`, color: colors.accent }}>
+            {colors.label}
+          </span>
+          <ClipboardCheck size={12} style={{ color: colors.accent }} />
         </div>
       </Link>
     );
   };
 
   if (loading) return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white">
-      <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mb-4" />
-      <div className="text-xl font-black italic tracking-tighter uppercase animate-pulse">Syncing Grid...</div>
+    <div className="flex flex-col items-center justify-center min-h-screen" style={{ background: '#0a0a0f' }}>
+      <div className="w-14 h-14 rounded-full border-4 border-t-transparent animate-spin mb-4" style={{ borderColor: '#e11d48 transparent transparent transparent' }} />
+      <div className="text-lg font-black italic uppercase animate-pulse" style={{ color: '#e11d48' }}>Syncing Grid...</div>
     </div>
   );
 
   return (
-    <div className="w-full min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white">
-      <div className="w-full px-8 py-10">
-        <header className="flex flex-col md:flex-row justify-between items-end gap-6 mb-20 border-b-[3px] border-black pb-10">
+    <div className="w-full min-h-screen" style={{ background: '#0a0a0f', color: '#f1f5f9' }}>
+      <div className="w-full px-6 py-8">
+
+        {/* Header */}
+        <header className="flex flex-col md:flex-row justify-between items-end gap-6 mb-16 pb-8" style={{ borderBottom: '2px solid #1e1e2e' }}>
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-3 bg-red-600 rounded-full" />
-              <div className="w-8 h-3 bg-blue-600 rounded-full" />
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-1 rounded-full" style={{ background: '#e11d48' }} />
+              <div className="w-6 h-1 rounded-full" style={{ background: '#3b82f6' }} />
             </div>
-            <h1 className="text-6xl font-black italic uppercase tracking-tighter leading-none mb-2">
-              Strategic <span className="text-transparent border-t-4 border-black inline-block pt-1" style={{ WebkitTextStroke: '2px black' }}>Overview</span>
+            <h1 className="text-5xl font-black italic uppercase tracking-tighter leading-none mb-2 text-white">
+              Strategic <span className="italic" style={{ color: '#e11d48' }}>Overview</span>
             </h1>
-            <p className="font-bold text-gray-400 uppercase tracking-[0.4em] text-xs">FRC Scouting Control System / V2.0</p>
+            <p className="font-bold uppercase tracking-[0.3em] text-xs" style={{ color: '#475569' }}>FRC Scouting Control System · V2.0</p>
           </div>
-          <div className="flex gap-4">
-            <Link href="/setup" className="group relative flex items-center justify-center gap-3 bg-black text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm overflow-hidden transition-all hover:pr-14 active:scale-95 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)]">
-              <span className="relative z-10 flex items-center gap-3"><Users size={20} /> New Match</span>
-              <div className="absolute right-0 top-0 bottom-0 w-0 bg-white/20 group-hover:w-12 transition-all duration-300 flex items-center justify-center">
-                <Settings size={20} className="animate-spin-slow" />
-              </div>
+          <div className="flex gap-3 flex-wrap justify-end">
+            <button onClick={downloadData}
+              className="flex items-center gap-2 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+              style={{ background: '#13131a', border: '1.5px solid #1e1e2e', color: '#94a3b8' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#e11d48'; e.currentTarget.style.color = '#e11d48'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e1e2e'; e.currentTarget.style.color = '#94a3b8'; }}
+            >
+              <Download size={18} /> Export CSV
+            </button>
+            <Link href="/setup"
+              className="flex items-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95 text-white"
+              style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', boxShadow: '0 10px 30px rgba(225,29,72,0.3)' }}
+            >
+              <Users size={18} /> New Match
+              <Settings size={16} className="opacity-60" />
             </Link>
           </div>
         </header>
 
+        {/* Live indicator */}
+        <div className="flex items-center gap-2 mb-8">
+          <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#22c55e' }} />
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: '#22c55e' }}>Live · Syncing every 5s</span>
+        </div>
+
         {matches.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 border-4 border-dashed border-gray-100 rounded-[3rem]">
-            <Info className="text-gray-200 mb-8" size={120} strokeWidth={1} />
-            <h2 className="text-4xl font-black uppercase tracking-tighter mb-4">No Active Records</h2>
-            <p className="font-bold text-gray-400 mb-10 max-w-sm text-center uppercase text-xs tracking-widest">The scouting grid is currently dormant. Initialize a match to begin data ingestion.</p>
-            <Link href="/setup" className="bg-black text-white px-12 py-6 rounded-2xl font-black uppercase tracking-widest shadow-2xl active:scale-95 transition-all">Setup Match</Link>
+          <div className="flex flex-col items-center justify-center py-32 rounded-3xl" style={{ border: '2px dashed #1e1e2e' }}>
+            <Info className="mb-6" size={80} style={{ color: '#1e1e2e' }} strokeWidth={1} />
+            <h2 className="text-3xl font-black uppercase tracking-tighter mb-3 text-white">No Active Records</h2>
+            <p className="font-bold mb-8 max-w-xs text-center uppercase text-xs tracking-widest" style={{ color: '#475569' }}>
+              Initialize a match to begin data ingestion.
+            </p>
+            <Link href="/setup"
+              className="px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-white transition-all active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', boxShadow: '0 10px 30px rgba(225,29,72,0.3)' }}
+            >
+              Setup Match
+            </Link>
           </div>
         ) : (
-          <div className="flex flex-col gap-32">
-            {matches.map((match) => (
-              <section key={match.matchNumber} className="relative group">
-                {/* Background numbers */}
-                <div className="absolute -top-20 -left-10 text-[20rem] font-black text-gray-50/50 -z-10 leading-none select-none pointer-events-none">
+          <div className="flex flex-col gap-24">
+            {matches.map(match => (
+              <section key={match.matchNumber} className="relative">
+                {/* Ghost number */}
+                <div className="absolute -top-16 -left-6 text-[16rem] font-black italic leading-none select-none pointer-events-none" style={{ color: 'rgba(225,29,72,0.04)' }}>
                   {match.matchNumber < 10 ? `0${match.matchNumber}` : match.matchNumber}
                 </div>
 
-                <div className="flex justify-between items-end mb-12 relative z-10">
-                  <div className="inline-flex items-center gap-6">
-                    <div className="bg-black text-white px-8 py-3 rounded-2xl shadow-2xl transform -skew-x-12">
-                      <span className="font-black text-3xl uppercase italic tracking-tight inline-block transform skew-x-12">Match {match.matchNumber}</span>
+                <div className="flex justify-between items-center mb-10 relative z-10">
+                  <div className="flex items-center gap-4">
+                    <div className="px-6 py-3 rounded-2xl" style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', boxShadow: '0 8px 24px rgba(225,29,72,0.3)' }}>
+                      <span className="font-black text-2xl uppercase italic tracking-tight text-white">Match {match.matchNumber}</span>
                     </div>
-                    <div className="h-[2px] w-32 bg-black/10 sm:block hidden" />
                   </div>
-                  
-                  <button 
+                  <button
                     onClick={() => deleteMatch(match.matchNumber)}
-                    className="flex items-center gap-2 bg-white border-[3px] border-black p-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-black hover:text-white transition-all duration-300 shadow-[0_10px_20px_-5px_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-none"
-                    title="Terminate Match Data"
+                    className="flex items-center gap-2 px-4 py-3 rounded-2xl font-black uppercase text-xs tracking-widest transition-all active:scale-95"
+                    style={{ background: '#13131a', border: '1.5px solid #1e1e2e', color: '#64748b' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#e11d48'; e.currentTarget.style.color = '#e11d48'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e1e2e'; e.currentTarget.style.color = '#64748b'; }}
                   >
-                    <span>Remove</span>
-                    <X size={18} strokeWidth={3} />
+                    <span>Remove</span><X size={16} strokeWidth={3} />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 relative z-10">
-                  <div className="relative">
-                    <div className="flex items-center gap-4 mb-8">
-                      <div className="w-2 h-8 bg-red-600 rounded-full" />
-                      <h2 className="text-lg font-black uppercase tracking-[0.3em] text-red-600">Primary Alliance</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 relative z-10">
+                  <div>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-1.5 h-7 rounded-full" style={{ background: '#e11d48' }} />
+                      <h2 className="text-sm font-black uppercase tracking-[0.3em]" style={{ color: '#e11d48' }}>Primary Alliance</h2>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-                      {match.teams.slice(0, 3).map((num, i) => <StatusCard key={`red-${num}-${i}`} teamNum={num} isRed={true} matchNumber={match.matchNumber} />)}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {match.teams.slice(0, 3).map((num, i) => <StatusCard key={`r-${num}-${i}`} teamNum={num} isRed={true} matchNumber={match.matchNumber} />)}
                     </div>
                   </div>
-
-                  <div className="relative">
-                    <div className="flex items-center gap-4 mb-8">
-                      <div className="w-2 h-8 bg-blue-600 rounded-full" />
-                      <h2 className="text-lg font-black uppercase tracking-[0.3em] text-blue-600">Opposition Alliance</h2>
+                  <div>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-1.5 h-7 rounded-full" style={{ background: '#3b82f6' }} />
+                      <h2 className="text-sm font-black uppercase tracking-[0.3em]" style={{ color: '#3b82f6' }}>Opposition Alliance</h2>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-                      {match.teams.slice(3, 6).map((num, i) => <StatusCard key={`blue-${num}-${i}`} teamNum={num} isRed={false} matchNumber={match.matchNumber} />)}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {match.teams.slice(3, 6).map((num, i) => <StatusCard key={`b-${num}-${i}`} teamNum={num} isRed={false} matchNumber={match.matchNumber} />)}
                     </div>
                   </div>
                 </div>
@@ -201,35 +241,26 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Legend */}
-        <footer className="mt-40 border-t-[3px] border-black pt-12 flex flex-col md:flex-row justify-between items-center gap-10 pb-20">
-          <div className="flex flex-wrap gap-12 justify-center items-center">
-            <div className="group flex items-center gap-4 cursor-help">
-              <div className="w-6 h-6 rounded-lg bg-red-500 shadow-[0_5px_15px_-5px_rgba(239,68,68,0.5)] group-hover:scale-110 transition-transform" />
-              <div className="flex flex-col">
-                <span className="font-black uppercase text-xs">Dormant</span>
-                <span className="text-[10px] font-bold text-gray-400 tracking-tighter uppercase whitespace-nowrap">Needs Scouting</span>
+        {/* Footer legend */}
+        <footer className="mt-32 pt-10 flex flex-col md:flex-row justify-between items-center gap-8 pb-16" style={{ borderTop: '1.5px solid #1e1e2e' }}>
+          <div className="flex flex-wrap gap-8 justify-center">
+            {[
+              { color: '#e11d48', label: 'Dormant', sub: 'Needs Scouting' },
+              { color: '#3b82f6', label: 'Active',  sub: 'Data Stream Open' },
+              { color: '#22c55e', label: 'Secured', sub: 'Report Finalized' },
+            ].map(item => (
+              <div key={item.label} className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-lg" style={{ background: item.color, boxShadow: `0 4px 12px ${item.color}44` }} />
+                <div>
+                  <div className="font-black uppercase text-xs text-white">{item.label}</div>
+                  <div className="text-[10px] font-bold uppercase tracking-tight" style={{ color: '#475569' }}>{item.sub}</div>
+                </div>
               </div>
-            </div>
-            <div className="group flex items-center gap-4 cursor-help">
-              <div className="w-6 h-6 rounded-lg bg-blue-500 shadow-[0_5px_15px_-5px_rgba(59,130,246,0.5)] group-hover:scale-110 transition-transform" />
-              <div className="flex flex-col">
-                <span className="font-black uppercase text-xs">Active</span>
-                <span className="text-[10px] font-bold text-gray-400 tracking-tighter uppercase whitespace-nowrap">Data Stream Open</span>
-              </div>
-            </div>
-            <div className="group flex items-center gap-4 cursor-help">
-              <div className="w-6 h-6 rounded-lg bg-green-500 shadow-[0_5px_15px_-5px_rgba(34,197,94,0.5)] group-hover:scale-110 transition-transform" />
-              <div className="flex flex-col">
-                <span className="font-black uppercase text-xs">Secured</span>
-                <span className="text-[10px] font-bold text-gray-400 tracking-tighter uppercase whitespace-nowrap">Report Finalized</span>
-              </div>
-            </div>
+            ))}
           </div>
-          
           <div className="text-right">
-            <div className="text-sm font-black italic uppercase tracking-tighter">Strategist Control Panel</div>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">Authorized Personnel Only</div>
+            <div className="text-sm font-black italic uppercase tracking-tighter" style={{ color: '#e11d48' }}>6905 Strategist Panel</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest mt-1" style={{ color: '#1e293b' }}>Authorized Personnel Only</div>
           </div>
         </footer>
       </div>
