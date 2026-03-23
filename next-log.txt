@@ -1,0 +1,34 @@
+﻿Γû▓ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:5050
+- Network:       http://10.0.0.249:5050
+
+Γ£ô Starting...
+node.exe : Γ¿» Unable 
+to acquire lock at C:\U
+sers\Hanish\OneDrive\Do
+cuments\FRC-Scouting\.n
+ext\dev\lock, is 
+another instance of 
+next dev running?
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Γ¿» Unable to   
+  a...xt dev runnin    
+g?:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+  Suggestion: If you intended to restart next dev, terminate the other process, and then try again.
+[?25h
