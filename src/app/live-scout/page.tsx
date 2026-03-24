@@ -188,7 +188,7 @@ function LiveScoutForm() {
                 <input type="number" placeholder="e.g. 254" value={formData.teamNumber} onChange={e => update({teamNumber: e.target.value})} className={INPUT_CLS} style={INPUT_STYLE} />
              </div>
              <div>
-                <label className={LABEL_CLS} style={{ color: '#64748b' }}>Match #</label>
+                <label className={LABEL_CLS} style={{ color: '#64748b' }}>Qual #</label>
                 <input type="number" placeholder="e.g. 1" value={formData.matchNumber} onChange={e => update({matchNumber: e.target.value})} className={INPUT_CLS} style={INPUT_STYLE} />
              </div>
           </div>

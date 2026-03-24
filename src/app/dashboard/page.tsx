@@ -157,7 +157,7 @@ export default function Dashboard() {
               <div className="w-6 h-1 rounded-full" style={{ background: '#3b82f6' }} />
             </div>
             <h1 className="text-5xl font-black italic uppercase tracking-tighter leading-none mb-2 text-white">
-              Prescout <span className="italic" style={{ color: '#e11d48' }}>Status</span>
+              Prescout <span className="italic" style={{ color: '#e11d48' }}>Qual Status</span>
             </h1>
             <p className="font-bold uppercase tracking-[0.3em] text-xs" style={{ color: '#475569' }}>FRC Scouting Control System · V2.0</p>
           </div>
@@ -174,7 +174,7 @@ export default function Dashboard() {
               className="flex items-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95 text-white"
               style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', boxShadow: '0 10px 30px rgba(225,29,72,0.3)' }}
             >
-              <Users size={18} /> New Match
+              <Users size={18} /> New Qual
               <Settings size={16} className="opacity-60" />
             </Link>
           </div>
@@ -203,13 +203,13 @@ export default function Dashboard() {
             <Info className="mb-6" size={80} style={{ color: '#1e1e2e' }} strokeWidth={1} />
             <h2 className="text-3xl font-black uppercase tracking-tighter mb-3 text-white">No Active Records</h2>
             <p className="font-bold mb-8 max-w-xs text-center uppercase text-xs tracking-widest" style={{ color: '#475569' }}>
-              Initialize a match to begin prescouting.
+              Initialize a qualification to begin prescouting.
             </p>
             <Link href="/setup"
               className="px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-white transition-all active:scale-95"
               style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', boxShadow: '0 10px 30px rgba(225,29,72,0.3)' }}
             >
-              Setup Match
+              Setup Qual
             </Link>
           </div>
         ) : (
@@ -224,7 +224,7 @@ export default function Dashboard() {
                   <div className="flex justify-between items-center mb-10 relative z-10">
                     <div className="flex items-center gap-4">
                       <div className="px-6 py-3 rounded-2xl" style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', boxShadow: '0 8px 24px rgba(225,29,72,0.3)' }}>
-                        <span className="font-black text-2xl uppercase italic tracking-tight text-white">Match {match.matchNumber}</span>
+                        <span className="font-black text-2xl uppercase italic tracking-tight text-white">Qual {match.matchNumber}</span>
                       </div>
                     </div>
                   </div>

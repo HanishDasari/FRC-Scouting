@@ -85,7 +85,7 @@ export default function MatchSetupPage() {
           <div className="p-3 rounded-2xl" style={{ background: 'rgba(225,29,72,0.15)' }}>
             <Users style={{ color: '#e11d48' }} size={28} />
           </div>
-          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white">Prescout Match Setup</h1>
+          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white">Prescout Qual Setup</h1>
         </div>
         
         {/* Toggle Mode */}
@@ -98,7 +98,7 @@ export default function MatchSetupPage() {
       {mode === 'single' ? (
         <form onSubmit={saveSetup} className="space-y-5">
           <div className="p-5 rounded-2xl" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}>
-            <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Match Number</label>
+            <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Qual Number</label>
             <input
               type="number" required placeholder="e.g. 42" value={matchNumber}
               onChange={e => setMatchNumber(e.target.value)}
@@ -137,7 +137,7 @@ export default function MatchSetupPage() {
             <button type="submit" disabled={loading}
               className="w-full flex justify-center items-center gap-2 text-white p-5 rounded-2xl font-black uppercase tracking-widest text-lg transition-all active:scale-95"
               style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', boxShadow: '0 10px 30px rgba(225,29,72,0.35)' }}>
-              {loading ? 'Saving...' : <><Save size={22} /> Initialize Match</>}
+              {loading ? 'Saving...' : <><Save size={22} /> Initialize Qualification</>}
             </button>
             <button type="button" onClick={() => router.push('/dashboard')}
               className="w-full flex justify-center items-center gap-2 p-5 rounded-2xl font-black uppercase tracking-widest text-base transition-all active:scale-95"
@@ -151,7 +151,7 @@ export default function MatchSetupPage() {
       ) : (
         <form onSubmit={saveMass} className="space-y-5">
           <div className="p-5 rounded-2xl space-y-3" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}>
-            <label className="block text-xs font-black uppercase" style={{ color: '#64748b' }}>Format per line: MatchNum Red1 Red2 Red3 Blue1 Blue2 Blue3</label>
+            <label className="block text-xs font-black uppercase" style={{ color: '#64748b' }}>Format per line: QualNum Red1 Red2 Red3 Blue1 Blue2 Blue3</label>
             <textarea
               required rows={8}
               placeholder={'1 254 118 1678 1323 3310 4414\n2 1690 2056 2910 1671 503 604\n3 6905 111 27 67 1114 2056'}
@@ -164,7 +164,7 @@ export default function MatchSetupPage() {
             <button type="submit" disabled={loading}
               className="w-full flex justify-center items-center gap-2 text-white p-5 rounded-2xl font-black uppercase tracking-widest text-lg transition-all active:scale-95"
               style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)', boxShadow: '0 10px 30px rgba(59,130,246,0.35)' }}>
-              {loading ? 'Processing...' : <><ListPlus size={22} /> Process All Matches</>}
+              {loading ? 'Processing...' : <><ListPlus size={22} /> Process All Quals</>}
             </button>
             <button type="button" onClick={() => router.push('/dashboard')}
               className="w-full flex justify-center items-center gap-2 p-5 rounded-2xl font-black uppercase tracking-widest text-base transition-all active:scale-95"

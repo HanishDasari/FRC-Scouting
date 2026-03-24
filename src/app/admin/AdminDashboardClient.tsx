@@ -54,13 +54,13 @@ export default function AdminDashboardClient() {
   const deleteMatch = async (matchNumber: number) => {
     showModal({
       type: 'confirm',
-      title: 'Delete Match?',
-      message: `Are you sure you want to completely remove Match ${matchNumber}? This action cannot be undone.`,
+      title: 'Delete Qual?',
+      message: `Are you sure you want to completely remove Qual ${matchNumber}? This action cannot be undone.`,
       onConfirm: async () => {
         const endpoint = activeTab === 'normal' ? `/api/scout?matchNumber=${matchNumber}` : `/api/live-scout?matchNumber=${matchNumber}`;
         const res = await fetch(endpoint, { method: 'DELETE' });
         if (res.ok) {
-          showModal({ type: 'success', title: 'Deleted', message: `Match ${matchNumber} has been removed.` });
+          showModal({ type: 'success', title: 'Deleted', message: `Qual ${matchNumber} has been removed.` });
           fetchData();
         } else {
           showModal({ type: 'error', title: 'Error', message: 'Failed to delete match.' });
@@ -135,7 +135,7 @@ export default function AdminDashboardClient() {
             <h1 className="text-4xl font-black italic uppercase tracking-tighter leading-none mb-2 text-white">
               Admin <span className="italic" style={{ color: '#e11d48' }}>Dashboard</span>
             </h1>
-            <p className="font-bold uppercase tracking-[0.3em] text-xs" style={{ color: '#475569' }}>Match Management Suite</p>
+            <p className="font-bold uppercase tracking-[0.3em] text-xs" style={{ color: '#475569' }}>Qualification Management Suite</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex bg-[#13131a] p-1 rounded-xl border border-[#1e1e2e] mr-4">
@@ -167,14 +167,14 @@ export default function AdminDashboardClient() {
           <div className="flex items-center gap-2 mb-4">
             <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: activeTab === 'normal' ? '#e11d48' : '#f59e0b' }} />
             <h2 className="font-black uppercase tracking-widest text-xs text-gray-400">
-              Managing {activeTab === 'normal' ? 'Standard Scouting' : 'Real-Time Match'} Roster
+              Managing {activeTab === 'normal' ? 'Standard Scouting' : 'Real-Time Qual'} Roster
             </h2>
           </div>
 
           {matches.length === 0 ? (
             <div className="text-center py-24 rounded-3xl border-2 border-dashed border-[#1e1e2e]">
-              <div className="text-gray-500 font-black uppercase tracking-widest text-sm mb-2">No matches found.</div>
-              <p className="text-xs text-gray-600 font-bold uppercase tracking-widest">Initialize matches from the setup page.</p>
+              <div className="text-gray-500 font-black uppercase tracking-widest text-sm mb-2">No qual records found.</div>
+              <p className="text-xs text-gray-600 font-bold uppercase tracking-widest">Initialize qualifications from the setup page.</p>
             </div>
           ) : (
             matches.map(match => (
@@ -191,7 +191,7 @@ export default function AdminDashboardClient() {
                          <div className="p-2 rounded-lg" style={{ background: activeTab === 'normal' ? 'rgba(225,29,72,0.1)' : 'rgba(245,158,11,0.1)' }}>
                            <Edit size={20} style={{ color: activeTab === 'normal' ? '#e11d48' : '#f59e0b' }} />
                          </div>
-                         <h3 className="font-black text-xl italic uppercase tracking-tight" style={{color: activeTab === 'normal' ? '#e11d48' : '#f59e0b'}}>Editing Match {match.matchNumber}</h3>
+                         <h3 className="font-black text-xl italic uppercase tracking-tight" style={{color: activeTab === 'normal' ? '#e11d48' : '#f59e0b'}}>Editing Qual {match.matchNumber}</h3>
                        </div>
                        <button onClick={() => setEditingMatch(null)} className="p-2 text-gray-500 hover:text-white transition-colors">
                          <X size={20} />
@@ -200,7 +200,7 @@ export default function AdminDashboardClient() {
                      
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                        <div>
-                         <label className="block text-[10px] font-black uppercase mb-2 tracking-[0.2em] text-gray-500">Match Number</label>
+                         <label className="block text-[10px] font-black uppercase mb-2 tracking-[0.2em] text-gray-500">Qual Number</label>
                          <input type="number" required value={editForm.matchNumber} onChange={e => setEditForm({...editForm, matchNumber: e.target.value})} className="w-full p-4 rounded-xl outline-none font-black text-white text-lg" style={INPUT_STYLE} />
                        </div>
                        
@@ -234,7 +234,7 @@ export default function AdminDashboardClient() {
                   <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex items-center gap-8 w-full md:w-auto">
                       <div className="px-6 py-4 rounded-2xl w-36 text-center border border-[#1e1e2e] shadow-inner" style={{ background: 'linear-gradient(135deg, #1e1e2e, #0d0d14)' }}>
-                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-1">Match</div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-1">Qual</div>
                         <div className="font-black text-3xl italic tracking-tighter text-white leading-none">{match.matchNumber}</div>
                       </div>
                       <div className="flex-1 space-y-3">

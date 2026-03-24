@@ -79,60 +79,79 @@ export default function LiveDashboardPage() {
         </button>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {data.matches.map((match: any) => {
           const mReports = data.reports.filter(r => Number(r.matchNumber) === Number(match.matchNumber));
           return (
-            <div key={match.matchNumber} className="p-6 rounded-3xl" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}>
-              <div className="flex flex-wrap items-center justify-between mb-4 border-b border-[#1e1e2e] pb-4">
-                <h2 className="text-2xl font-black uppercase text-white">Match {match.matchNumber}</h2>
-                <div className="flex gap-4 text-sm font-bold" style={{ color: '#64748b' }}>
-                  <span className="flex items-center gap-1"><Clock size={16} /> {match.time || 'N/A'}</span>
-                  <span className="flex items-center gap-1"><Users size={16} /> {match.qualRound || 'N/A'}</span>
+            <div key={match.matchNumber} className="flex flex-col lg:flex-row gap-6 p-8 rounded-[2.5rem]" style={{ background: '#13131a', border: '1.5px solid #1e1e2e', boxShadow: '0 20px 50px -12px rgba(0,0,0,0.5)' }}>
+              {/* Left Side: Match Info Impact */}
+              <div className="flex lg:flex-col items-center lg:items-start justify-between lg:justify-center p-6 lg:p-8 rounded-3xl lg:w-48 shrink-0" style={{ background: 'linear-gradient(135deg, #1e1e2e, #13131a)', border: '1.5px solid #2d2d3d' }}>
+                <div className="text-center lg:text-left">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-1 text-cyan-500/70">Qual</div>
+                  <div className="text-6xl lg:text-7xl font-black italic tracking-tighter text-white leading-none">
+                    {match.matchNumber}
+                  </div>
+                </div>
+                <div className="mt-0 lg:mt-6 text-right lg:text-left">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-1 text-cyan-500/70 flex items-center gap-1"><Clock size={10} /> Time</div>
+                  <div className="text-xl lg:text-2xl font-black text-white italic">
+                    {match.time || 'N/A'}
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2 p-4 rounded-2xl" style={{ background: 'rgba(225,29,72,0.05)', border: '1px solid rgba(225,29,72,0.2)' }}>
-                  <h3 className="font-black uppercase text-xs" style={{ color: '#e11d48' }}>Red Alliance</h3>
-                  {match.teams.slice(0,3).map((team: number) => {
-                    const rep = mReports.find(r => Number(r.teamNumber) === Number(team));
-                    return (
-                      <div key={team} onClick={() => router.push(`/live-scout?match=${match.matchNumber}&team=${team}`)} className="flex items-center justify-between p-3 rounded-xl cursor-pointer hover:bg-white/5 transition-all active:scale-95" style={{ background: '#0a0a0f' }}>
-                        <span className="font-bold text-white">{team}</span>
-                        {rep ? (
-                           <div className="flex items-center gap-3 text-xs font-bold">
-                             <span style={{color: '#f59e0b'}}>A: {rep.autonScored}</span>
-                             <span style={{color: '#22c55e'}}>T: {rep.scored}</span>
-                             {rep.hasHang ? <span className="text-green-400">Hang: Y</span> : <span className="text-red-400">Hang: N</span>}
-                           </div>
-                        ) : (
-                           <span className="text-xs font-bold uppercase" style={{ color: '#64748b' }}>Pending</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+              {/* Right Side: Alliance Grids */}
+              <div className="flex-1 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+                  {/* Red Alliance */}
+                  <div className="space-y-2 p-5 rounded-3xl" style={{ background: 'rgba(225,29,72,0.03)', border: '1.5px solid rgba(225,29,72,0.15)' }}>
+                    <div className="flex items-center justify-between mb-2">
+                       <h3 className="font-black uppercase text-[10px] tracking-widest" style={{ color: '#e11d48' }}>Red Alliance</h3>
+                       <div className="w-8 h-1 rounded-full" style={{ background: '#e11d48' }} />
+                    </div>
+                    {match.teams.slice(0,3).map((team: number) => {
+                      const rep = mReports.find(r => Number(r.teamNumber) === Number(team));
+                      return (
+                        <div key={team} onClick={() => router.push(`/live-scout?match=${match.matchNumber}&team=${team}`)} className="flex items-center justify-between p-4 rounded-2xl cursor-pointer hover:bg-white/5 transition-all active:scale-95 group" style={{ background: '#0a0a0f', border: '1px solid #1e1e2e' }}>
+                          <span className="font-black text-lg text-white group-hover:text-[#e11d48] transition-colors">{team}</span>
+                          {rep ? (
+                             <div className="flex items-center gap-3 text-[11px] font-black uppercase">
+                               <span style={{color: '#f59e0b'}}>Auton: {rep.autonScored}</span>
+                               <span style={{color: '#22c55e'}}>Tele: {rep.scored}</span>
+                               {rep.hasHang ? <span className="text-green-400">Hang: Y</span> : <span className="text-red-400">Hang: N</span>}
+                             </div>
+                          ) : (
+                             <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#334155' }}>Awaiting...</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                <div className="space-y-2 p-4 rounded-2xl" style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.2)' }}>
-                  <h3 className="font-black uppercase text-xs" style={{ color: '#3b82f6' }}>Blue Alliance</h3>
-                  {match.teams.slice(3,6).map((team: number) => {
-                    const rep = mReports.find(r => Number(r.teamNumber) === Number(team));
-                    return (
-                      <div key={team} onClick={() => router.push(`/live-scout?match=${match.matchNumber}&team=${team}`)} className="flex items-center justify-between p-3 rounded-xl cursor-pointer hover:bg-white/5 transition-all active:scale-95" style={{ background: '#0a0a0f' }}>
-                        <span className="font-bold text-white">{team}</span>
-                        {rep ? (
-                           <div className="flex items-center gap-3 text-xs font-bold">
-                             <span style={{color: '#f59e0b'}}>A: {rep.autonScored}</span>
-                             <span style={{color: '#22c55e'}}>T: {rep.scored}</span>
-                             {rep.hasHang ? <span className="text-green-400">Hang: Y</span> : <span className="text-red-400">Hang: N</span>}
-                           </div>
-                        ) : (
-                           <span className="text-xs font-bold uppercase" style={{ color: '#64748b' }}>Pending</span>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {/* Blue Alliance */}
+                  <div className="space-y-2 p-5 rounded-3xl" style={{ background: 'rgba(59,130,246,0.03)', border: '1.5px solid rgba(59,130,246,0.15)' }}>
+                    <div className="flex items-center justify-between mb-2">
+                       <h3 className="font-black uppercase text-[10px] tracking-widest" style={{ color: '#3b82f6' }}>Blue Alliance</h3>
+                       <div className="w-8 h-1 rounded-full" style={{ background: '#3b82f6' }} />
+                    </div>
+                    {match.teams.slice(3,6).map((team: number) => {
+                      const rep = mReports.find(r => Number(r.teamNumber) === Number(team));
+                      return (
+                        <div key={team} onClick={() => router.push(`/live-scout?match=${match.matchNumber}&team=${team}`)} className="flex items-center justify-between p-4 rounded-2xl cursor-pointer hover:bg-white/5 transition-all active:scale-95 group" style={{ background: '#0a0a0f', border: '1px solid #1e1e2e' }}>
+                          <span className="font-black text-lg text-white group-hover:text-[#3b82f6] transition-colors">{team}</span>
+                          {rep ? (
+                             <div className="flex items-center gap-3 text-[11px] font-black uppercase">
+                               <span style={{color: '#f59e0b'}}>Auton: {rep.autonScored}</span>
+                               <span style={{color: '#22c55e'}}>Tele: {rep.scored}</span>
+                               {rep.hasHang ? <span className="text-green-400">Hang: Y</span> : <span className="text-red-400">Hang: N</span>}
+                             </div>
+                          ) : (
+                             <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#334155' }}>Awaiting...</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>

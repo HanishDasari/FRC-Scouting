@@ -179,7 +179,7 @@ function ScoutForm() {
             {[
               { field: 'scouterName', label: 'Your Name', placeholder: 'Scouter Name', type: 'text' },
               { field: 'teamNumber', label: 'Team #', placeholder: 'e.g. 254', type: 'number' },
-              { field: 'matchNumber', label: 'Match #', placeholder: 'e.g. 1', type: 'number' },
+              { field: 'matchNumber', label: 'Qual #', placeholder: 'e.g. 1', type: 'number' },
             ].map(({ field, label, placeholder, type }) => (
               <div key={field}>
                 <label className={LABEL_CLS} style={{ color: '#64748b' }}>{label}</label>

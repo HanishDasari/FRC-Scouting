@@ -92,7 +92,7 @@ export default function LiveScoutSetupPage() {
           <div className="p-3 rounded-2xl" style={{ background: 'rgba(245,158,11,0.15)' }}>
             <Users style={{ color: '#f59e0b' }} size={28} />
           </div>
-          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white">Live Match Setup</h1>
+          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white">Live Qual Setup</h1>
         </div>
         
         <div className="flex bg-[#13131a] p-1 rounded-xl border border-[#1e1e2e]">
@@ -105,7 +105,7 @@ export default function LiveScoutSetupPage() {
         <form onSubmit={handleSave} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 rounded-2xl" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}>
             <div>
-              <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Match (#)</label>
+              <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Qual (#)</label>
               <input type="number" required placeholder="e.g. 42" value={matchNumber} onChange={e => setMatchNumber(e.target.value)} className="w-full text-base font-black p-4 rounded-xl outline-none text-white" style={INPUT_STYLE} />
             </div>
             <div>
@@ -148,7 +148,7 @@ export default function LiveScoutSetupPage() {
             <button type="submit" disabled={loading}
               className="w-full flex justify-center items-center gap-2 text-white p-5 rounded-2xl font-black uppercase tracking-widest text-lg transition-all active:scale-95"
               style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', boxShadow: '0 10px 30px rgba(245,158,11,0.35)' }}>
-              {loading ? 'Saving...' : <><Save size={22} /> Initialize Real-Time Match</>}
+              {loading ? 'Saving...' : <><Save size={22} /> Initialize Real-Time Qual</>}
             </button>
             <button type="button" onClick={() => router.push('/live-dashboard')}
               className="w-full flex justify-center items-center gap-2 p-5 rounded-2xl font-black uppercase tracking-widest text-base transition-all active:scale-95"
@@ -162,7 +162,7 @@ export default function LiveScoutSetupPage() {
       ) : (
         <form onSubmit={handleMassSubmit} className="space-y-5">
           <div className="p-5 rounded-2xl space-y-3" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}>
-            <label className="block text-xs font-black uppercase" style={{ color: '#64748b' }}>Format per line: MatchNum Time QualRound Red1 Red2 Red3 Blue1 Blue2 Blue3</label>
+            <label className="block text-xs font-black uppercase" style={{ color: '#64748b' }}>Format per line: QualNum Time QualRound Red1 Red2 Red3 Blue1 Blue2 Blue3</label>
             <textarea
               required rows={8}
               placeholder={'1 10:00AM Q1 254 118 1678 1323 3310 4414\n2 10:15AM Q2 1690 2056 2910 1671 503 604'}
@@ -175,7 +175,7 @@ export default function LiveScoutSetupPage() {
             <button type="submit" disabled={loading}
               className="w-full flex justify-center items-center gap-2 text-white p-5 rounded-2xl font-black uppercase tracking-widest text-lg transition-all active:scale-95"
               style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)', boxShadow: '0 10px 30px rgba(59,130,246,0.35)' }}>
-              {loading ? 'Processing...' : <><ListPlus size={22} /> Process All Matches</>}
+              {loading ? 'Processing...' : <><ListPlus size={22} /> Process All Quals</>}
             </button>
             <button type="button" onClick={() => router.push('/live-dashboard')}
               className="w-full flex justify-center items-center gap-2 p-5 rounded-2xl font-black uppercase tracking-widest text-base transition-all active:scale-95"
