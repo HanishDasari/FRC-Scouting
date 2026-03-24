@@ -46,114 +46,96 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 w-full max-w-5xl">
-        <Link
-          href="/setup"
-          className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95"
-          style={{
-            background: 'linear-gradient(135deg, #1a0a12 0%, #13131a 100%)',
-            borderColor: 'rgba(225,29,72,0.3)',
-            boxShadow: '0 0 0 0 rgba(225,29,72,0)',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(225,29,72,0.2)')}
-          onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(225,29,72,0)')}
-        >
-          <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(225,29,72,0.15)' }}>
-            <Users size={36} style={{ color: '#e11d48' }} />
+      <div className="relative z-10 w-full max-w-5xl space-y-12">
+        <section>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-[2px] flex-1" style={{ background: 'linear-gradient(90deg, transparent, rgba(225,29,72,0.3))' }} />
+            <h2 className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#e11d48' }}>Prescouting Operations</h2>
+            <div className="h-[2px] flex-1" style={{ background: 'linear-gradient(90deg, rgba(225,29,72,0.3), transparent)' }} />
           </div>
-          <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Prescout Match Setup</span>
-          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Configure 6-Team Roster</span>
-        </Link>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Link
+              href="/setup"
+              className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95 text-center"
+              style={{
+                background: 'linear-gradient(135deg, #1a0a12 0%, #13131a 100%)',
+                borderColor: 'rgba(225,29,72,0.3)',
+                boxShadow: '0 0 0 0 rgba(225,29,72,0)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(225,29,72,0.2)')}
+              onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(225,29,72,0)')}
+            >
+              <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(225,29,72,0.15)' }}>
+                <Users size={36} style={{ color: '#e11d48' }} />
+              </div>
+              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Prescout Match Setup</span>
+              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Configure 6-Team Roster</span>
+            </Link>
 
-        <Link
-          href="/scout"
-          className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95"
-          style={{
-            background: 'linear-gradient(135deg, #0d1a0f 0%, #13131a 100%)',
-            borderColor: 'rgba(34,197,94,0.3)',
-            boxShadow: '0 0 0 0 rgba(34,197,94,0)',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(34,197,94,0.15)')}
-          onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(34,197,94,0)')}
-        >
-          <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(34,197,94,0.12)' }}>
-            <ClipboardList size={36} style={{ color: '#22c55e' }} />
+            <Link
+              href="/dashboard"
+              className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95 text-center"
+              style={{
+                background: 'linear-gradient(135deg, #0a131a 0%, #13131a 100%)',
+                borderColor: 'rgba(59,130,246,0.3)',
+                boxShadow: '0 0 0 0 rgba(59,130,246,0)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(59,130,246,0.15)')}
+              onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(59,130,246,0)')}
+            >
+              <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(59,130,246,0.12)' }}>
+                <LayoutDashboard size={36} style={{ color: '#3b82f6' }} />
+              </div>
+              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Prescout Status</span>
+              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Live Alliance Tracking</span>
+            </Link>
           </div>
-          <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Prescout</span>
-          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Record Strategy Intel</span>
-        </Link>
+        </section>
 
-        <Link
-          href="/dashboard"
-          className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95"
-          style={{
-            background: 'linear-gradient(135deg, #0a0f1a 0%, #13131a 100%)',
-            borderColor: 'rgba(59,130,246,0.3)',
-            boxShadow: '0 0 0 0 rgba(59,130,246,0)',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(59,130,246,0.15)')}
-          onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(59,130,246,0)')}
-        >
-          <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(59,130,246,0.12)' }}>
-            <LayoutDashboard size={36} style={{ color: '#3b82f6' }} />
+        <section>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-[2px] flex-1" style={{ background: 'linear-gradient(90deg, transparent, rgba(245,158,11,0.3))' }} />
+            <h2 className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#f59e0b' }}>Real-Time Intelligence</h2>
+            <div className="h-[2px] flex-1" style={{ background: 'linear-gradient(90deg, rgba(245,158,11,0.3), transparent)' }} />
           </div>
-          <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Prescout Status</span>
-          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Live Alliance Tracking</span>
-        </Link>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Link
+              href="/live-scout-setup"
+              className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95 text-center"
+              style={{
+                background: 'linear-gradient(135deg, #1f1406 0%, #13131a 100%)',
+                borderColor: 'rgba(245,158,11,0.3)',
+                boxShadow: '0 0 0 0 rgba(245,158,11,0)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(245,158,11,0.2)')}
+              onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(245,158,11,0)')}
+            >
+              <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(245,158,11,0.15)' }}>
+                <Users size={36} style={{ color: '#f59e0b' }} />
+              </div>
+              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Live Match Setup</span>
+              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Configure Timed Matches</span>
+            </Link>
 
-        <Link
-          href="/live-scout-setup"
-          className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95"
-          style={{
-            background: 'linear-gradient(135deg, #1f1406 0%, #13131a 100%)',
-            borderColor: 'rgba(245,158,11,0.3)',
-            boxShadow: '0 0 0 0 rgba(245,158,11,0)',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(245,158,11,0.2)')}
-          onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(245,158,11,0)')}
-        >
-          <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(245,158,11,0.15)' }}>
-            <Users size={36} style={{ color: '#f59e0b' }} />
+            <Link
+              href="/live-dashboard"
+              className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95 text-center"
+              style={{
+                background: 'linear-gradient(135deg, #021217 0%, #13131a 100%)',
+                borderColor: 'rgba(6,182,212,0.3)',
+                boxShadow: '0 0 0 0 rgba(6,182,212,0)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(6,182,212,0.15)')}
+              onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(6,182,212,0)')}
+            >
+              <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(6,182,212,0.12)' }}>
+                <LineChart size={36} style={{ color: '#06b6d4' }} />
+              </div>
+              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Real-Time Status</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-center" style={{ color: '#64748b' }}>Real-Time Match Leaderboard</span>
+            </Link>
           </div>
-          <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Live Match Setup</span>
-          <span className="text-xs font-bold uppercase tracking-wider text-center" style={{ color: '#64748b' }}>Configure Timed Matches</span>
-        </Link>
-
-        <Link
-          href="/live-scout"
-          className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95"
-          style={{
-            background: 'linear-gradient(135deg, #1f0119 0%, #13131a 100%)',
-            borderColor: 'rgba(217,70,239,0.3)',
-            boxShadow: '0 0 0 0 rgba(217,70,239,0)',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(217,70,239,0.15)')}
-          onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(217,70,239,0)')}
-        >
-          <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(217,70,239,0.12)' }}>
-            <Activity size={36} style={{ color: '#d946ef' }} />
-          </div>
-          <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Real-Time Scout</span>
-          <span className="text-xs font-bold uppercase tracking-wider text-center" style={{ color: '#64748b' }}>Record Real-Time Performance</span>
-        </Link>
-
-        <Link
-          href="/live-dashboard"
-          className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95"
-          style={{
-            background: 'linear-gradient(135deg, #021217 0%, #13131a 100%)',
-            borderColor: 'rgba(6,182,212,0.3)',
-            boxShadow: '0 0 0 0 rgba(6,182,212,0)',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(6,182,212,0.15)')}
-          onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(6,182,212,0)')}
-        >
-          <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(6,182,212,0.12)' }}>
-            <LineChart size={36} style={{ color: '#06b6d4' }} />
-          </div>
-          <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Real-Time Status</span>
-          <span className="text-xs font-bold uppercase tracking-wider text-center" style={{ color: '#64748b' }}>Real-Time Match Leaderboard</span>
-        </Link>
+        </section>
       </div>
 
       <div className="relative z-10 mt-14 text-xs font-black uppercase tracking-[0.3em]" style={{ color: '#1e293b' }}>

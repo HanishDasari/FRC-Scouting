@@ -61,9 +61,12 @@ function Section({ title, children, accent = '#e11d48' }: { title: string; child
   );
 }
 
+import { useModal } from '@/context/ModalContext';
+
 function ScoutForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showModal } = useModal();
   const [loading, setLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
 
@@ -123,17 +126,25 @@ function ScoutForm() {
   const set = (field: string, value: any) => setFormData(prev => ({ ...prev, [field]: value }));
 
   const handleSave = async (status: 'IN_PROGRESS' | 'COMPLETED') => {
-    if (!formData.scouterName || !formData.teamNumber) { alert('Please fill out scouter name and team number!'); return; }
+    if (!formData.scouterName || !formData.teamNumber) { 
+      showModal({ type: 'warning', title: 'Incomplete', message: 'Please fill out scouter name and team number!' }); 
+      return; 
+    }
     setLoading(true);
     try {
       const res = await fetch('/api/scout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...formData, status }) });
       if (res.ok && status === 'COMPLETED') {
         setFormData(prev => ({ ...prev, status: 'COMPLETED' }));
-        alert('Scouting report SUBMITTED!');
-        router.push('/dashboard');
+        showModal({ 
+          type: 'success', 
+          title: 'Submitted', 
+          message: 'Scouting report SUBMITTED!', 
+          onConfirm: () => router.push('/dashboard') 
+        });
       }
-    } catch { alert('Error syncing data.'); }
-    finally { setLoading(false); }
+    } catch { 
+      showModal({ type: 'error', title: 'Error', message: 'Error syncing data.' }); 
+    } finally { setLoading(false); }
   };
 
   if (isInitializing) return (

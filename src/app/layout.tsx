@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: 'FRC Scouting platform for Team 6905, tailored for the 2026 Rebuilt game.',
 };
 
+import { ModalProvider } from '@/context/ModalContext';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -20,22 +22,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         `}</style>
       </head>
       <body className={`${inter.className} bg-background text-foreground min-h-screen flex flex-col overflow-x-hidden`}>
-        <nav style={{ background: '#0d0d14', borderBottom: '1px solid #1e1e2e' }} className="text-white p-4 sticky top-0 z-50">
-          <div className="container mx-auto flex flex-wrap justify-between items-center gap-y-3">
-            <Link href="/" className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2 mt-1 mb-1">
-              <img src="/shark_logo.png" alt="6905 Logo" className="h-8 w-auto object-contain" />
-              <span style={{ color: '#e11d48' }}>6905</span><span className="text-white">Scout</span>
-            </Link>
-            <div className="flex gap-4">
-              <Link href="/scout" className="nav-link">Scout</Link>
-              <Link href="/dashboard" className="nav-link">Dashboard</Link>
-              <Link href="/admin" className="nav-link">Admin</Link>
+        <ModalProvider>
+          <nav style={{ background: '#0d0d14', borderBottom: '1px solid #1e1e2e' }} className="text-white p-4 sticky top-0 z-50">
+            <div className="container mx-auto flex flex-wrap justify-between items-center gap-y-3">
+              <Link href="/" className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2 mt-1 mb-1">
+                <img src="/shark_logo.png" alt="6905 Logo" className="h-8 w-auto object-contain" />
+                <span style={{ color: '#e11d48' }}>6905</span><span className="text-white">Scout</span>
+              </Link>
+              <div className="flex gap-4">
+                <Link href="/scout" className="nav-link">Scout</Link>
+                <Link href="/dashboard" className="nav-link">Dashboard</Link>
+                <Link href="/admin" className="nav-link">Admin</Link>
+              </div>
             </div>
-          </div>
-        </nav>
-        <main className="flex-1" style={{ background: '#0a0a0f' }}>
-          {children}
-        </main>
+          </nav>
+          <main className="flex-1" style={{ background: '#0a0a0f' }}>
+            {children}
+          </main>
+        </ModalProvider>
       </body>
     </html>
   );

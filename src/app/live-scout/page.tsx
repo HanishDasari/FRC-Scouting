@@ -59,9 +59,12 @@ function Section({ title, children, accent = '#f59e0b' }: { title: string; child
   );
 }
 
+import { useModal } from '@/context/ModalContext';
+
 function LiveScoutForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showModal } = useModal();
   const [loading, setLoading] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'saved' | 'saving' | 'error' | null>(null);
 
@@ -126,7 +129,10 @@ function LiveScoutForm() {
   const update = (obj: any) => setFormData(p => ({ ...p, ...obj, dirty: true }));
 
   const handleSave = async () => {
-    if (!formData.scouterName || !formData.teamNumber) { alert('Please fill out scouter name and team number!'); return; }
+    if (!formData.scouterName || !formData.teamNumber) { 
+      showModal({ type: 'warning', title: 'Incomplete', message: 'Please fill out scouter name and team number!' }); 
+      return; 
+    }
     setLoading(true);
     try {
       const res = await fetch('/api/live-scout', { 
@@ -135,13 +141,19 @@ function LiveScoutForm() {
          body: JSON.stringify({ ...formData, type: 'REPORT' }) 
       });
       if (res.ok) {
-        router.push('/live-dashboard');
+        showModal({ 
+          type: 'success', 
+          title: 'Submitted', 
+          message: 'Real-time scouting report SUBMITTED!', 
+          onConfirm: () => router.push('/live-dashboard') 
+        });
       } else {
          const d = await res.json();
-         alert(d.error || 'Failed to sync');
+         showModal({ type: 'error', title: 'Sync Failed', message: d.error || 'Failed to sync' });
       }
-    } catch { alert('Error syncing data.'); }
-    finally { setLoading(false); }
+    } catch { 
+      showModal({ type: 'error', title: 'Error', message: 'Error syncing data.' }); 
+    } finally { setLoading(false); }
   };
 
   return (

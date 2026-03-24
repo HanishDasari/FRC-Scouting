@@ -6,8 +6,11 @@ import { Users, Save, LayoutDashboard, ListPlus } from 'lucide-react';
 
 const INPUT_STYLE = { background: '#0d0d14', border: '1.5px solid #1e1e2e', color: '#f1f5f9' } as React.CSSProperties;
 
+import { useModal } from '@/context/ModalContext';
+
 export default function LiveScoutSetupPage() {
   const router = useRouter();
+  const { showModal } = useModal();
   const [matchNumber, setMatchNumber] = useState('');
   const [time, setTime] = useState('');
   const [qualRound, setQualRound] = useState('');
@@ -25,7 +28,7 @@ export default function LiveScoutSetupPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!matchNumber || teams.some(t => !t)) {
-      alert('Please fill in the match number and all 6 team numbers.');
+      showModal({ type: 'warning', title: 'Missing Info', message: 'Please fill in the match number and all 6 team numbers.' });
       return;
     }
     setLoading(true);
@@ -37,18 +40,22 @@ export default function LiveScoutSetupPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Match setup saved!');
-        router.push('/');
+        showModal({ type: 'success', title: 'Match Saved', message: 'Match setup saved!' });
+        setTimeout(() => router.push('/live-dashboard'), 2000);
       } else {
-        alert(`Failed to save: ${data.error || res.status}`);
+        showModal({ type: 'error', title: 'Save Failed', message: `Failed to save: ${data.error || res.status}` });
       }
-    } catch (err: any) { alert(`Error: ${err.message}`); }
-    finally { setLoading(false); }
+    } catch (err: any) { 
+      showModal({ type: 'error', title: 'Error', message: `Error: ${err.message}` }); 
+    } finally { setLoading(false); }
   };
 
   const handleMassSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!massText.trim()) { alert('Please enter at least one match.'); return; }
+    if (!massText.trim()) { 
+      showModal({ type: 'warning', title: 'Empty Input', message: 'Please enter at least one match.' }); 
+      return; 
+    }
     setLoading(true);
     const lines = massText.split('\n').map(l => l.trim()).filter(Boolean);
     let successCount = 0;
@@ -70,11 +77,12 @@ export default function LiveScoutSetupPage() {
           successCount++;
         }
       }
-      alert(`Successfully saved ${successCount} matches!`);
+      showModal({ type: 'success', title: 'Success', message: `Successfully saved ${successCount} matches!` });
       setMassText('');
-      router.push('/');
-    } catch (err: any) { alert(`Error: ${err.message}`); }
-    finally { setLoading(false); }
+      setTimeout(() => router.push('/live-dashboard'), 2000);
+    } catch (err: any) { 
+      showModal({ type: 'error', title: 'Error', message: `Error: ${err.message}` }); 
+    } finally { setLoading(false); }
   };
 
   return (

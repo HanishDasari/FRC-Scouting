@@ -4,8 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, LineChart, Users, CheckCircle, Clock, Download } from 'lucide-react';
 
+import { useModal } from '@/context/ModalContext';
+
 export default function LiveDashboardPage() {
   const router = useRouter();
+  const { showModal } = useModal();
   const [data, setData] = useState<{ matches: any[], reports: any[] }>({ matches: [], reports: [] });
   const [loading, setLoading] = useState(true);
 
@@ -20,7 +23,10 @@ export default function LiveDashboardPage() {
   }, []);
 
   const downloadData = () => {
-    if (!data.reports || data.reports.length === 0) { alert('No data available to download.'); return; }
+    if (!data.reports || data.reports.length === 0) {
+      showModal({ type: 'warning', title: 'No Data', message: 'No data available to download.' });
+      return;
+    }
     const headers = Object.keys(data.reports[0]).join(',');
     const rows = data.reports.map(r => Object.values(r).map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
     const csv = [headers, ...rows].join('\n');

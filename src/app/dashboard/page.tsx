@@ -30,8 +30,11 @@ const S = {
   input: 'w-full p-4 rounded-2xl font-bold outline-none' as const,
 };
 
+import { useModal } from '@/context/ModalContext';
+
 export default function Dashboard() {
   const router = useRouter();
+  const { showModal } = useModal();
   const [reports, setReports] = useState<ScoutReport[]>([]);
   const [matches, setMatches] = useState<MatchConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +59,10 @@ export default function Dashboard() {
   }, [fetchData]);
 
   const downloadData = () => {
-    if (!reports || reports.length === 0) { alert('No data available to download.'); return; }
+    if (!reports || reports.length === 0) { 
+      showModal({ type: 'warning', title: 'No Data', message: 'No data available to download.' }); 
+      return; 
+    }
     const headers = Object.keys(reports[0]).join(',');
     const rows = reports.map(r => Object.values(r).map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
     const csv = [headers, ...rows].join('\n');
@@ -82,10 +88,16 @@ export default function Dashboard() {
 
   const deleteDraft = async (e: React.MouseEvent, id: string) => {
     e.preventDefault(); e.stopPropagation();
-    if (confirm('Delete this draft?')) {
-      await fetch(`/api/scout?id=${id}`, { method: 'DELETE' });
-      fetchData();
-    }
+    showModal({
+      type: 'confirm',
+      title: 'Delete Draft?',
+      message: 'Are you sure you want to delete this draft? This cannot be undone.',
+      onConfirm: async () => {
+        await fetch(`/api/scout?id=${id}`, { method: 'DELETE' });
+        showModal({ type: 'success', title: 'Deleted', message: 'Draft has been removed.' });
+        fetchData();
+      }
+    });
   };
 
   const StatusCard = ({ teamNum, isRed, matchNumber }: { teamNum: number; isRed: boolean; matchNumber: number }) => {

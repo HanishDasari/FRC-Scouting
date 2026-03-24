@@ -22,6 +22,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true });
     }
 
+    if (body.type === 'EDIT_MATCH') {
+      const oldMatchNumber = parseInt(body.oldMatchNumber, 10);
+      const newMatchNumber = parseInt(body.newMatchNumber, 10);
+      const teams = body.teams.map((t: any) => t.toString()).join(',');
+      
+      await query(
+        `UPDATE live_matches SET "matchNumber" = $1, teams = $2 WHERE "matchNumber" = $3`,
+        [newMatchNumber, teams, oldMatchNumber]
+      );
+      
+      if (oldMatchNumber !== newMatchNumber) {
+        await query(`UPDATE live_reports SET "matchNumber" = $1 WHERE "matchNumber" = $2`, [newMatchNumber, oldMatchNumber]);
+      }
+      return NextResponse.json({ success: true });
+    }
+
     if (body.type === 'REPORT') {
       const r = {
         id: body.id,
@@ -50,6 +66,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unknown type' }, { status: 400 });
   } catch (error) {
     console.error('POST error:', error);
+    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    await ensureInit();
+    const { searchParams } = new URL(req.url);
+    const matchNumber = searchParams.get('matchNumber');
+    const id = searchParams.get('id');
+
+    if (id) {
+      await query('DELETE FROM live_reports WHERE id = $1', [id]);
+      return NextResponse.json({ success: true });
+    }
+    if (matchNumber) {
+      await query('DELETE FROM live_matches WHERE "matchNumber" = $1', [parseInt(matchNumber, 10)]);
+      return NextResponse.json({ success: true });
+    }
+    return NextResponse.json({ error: 'ID or Match number required' }, { status: 400 });
+  } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

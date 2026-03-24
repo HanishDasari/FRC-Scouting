@@ -6,8 +6,11 @@ import { Users, Save, LayoutDashboard, ListPlus } from 'lucide-react';
 
 const INPUT_STYLE = { background: '#0d0d14', border: '1.5px solid #1e1e2e', color: '#f1f5f9' } as React.CSSProperties;
 
+import { useModal } from '@/context/ModalContext';
+
 export default function MatchSetupPage() {
   const router = useRouter();
+  const { showModal } = useModal();
   const [matchNumber, setMatchNumber] = useState('');
   const [teams, setTeams] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
@@ -21,10 +24,10 @@ export default function MatchSetupPage() {
     setTeams(newTeams);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const saveSetup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!matchNumber || teams.some(t => !t)) {
-      alert('Please fill in the match number and all 6 team numbers.');
+      showModal({ type: 'warning', title: 'Missing Info', message: 'Please fill in the match number and all 6 team numbers.' });
       return;
     }
     setLoading(true);
@@ -36,38 +39,43 @@ export default function MatchSetupPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Match setup saved! Directing to dashboard...');
-        router.push('/dashboard');
+        showModal({ type: 'success', title: 'Match Saved', message: 'Match setup saved! Directing to dashboard...' });
+        setTimeout(() => window.location.href = '/dashboard', 2000);
       } else {
-        alert(`Failed to save: ${data.error || res.status}`);
+        showModal({ type: 'error', title: 'Save Failed', message: `Failed to save: ${data.error || res.status}` });
       }
-    } catch (err: any) { alert(`Error: ${err.message}`); }
-    finally { setLoading(false); }
+    } catch (err: any) { 
+      showModal({ type: 'error', title: 'Error', message: `Error: ${err.message}` }); 
+    } finally { setLoading(false); }
   };
 
-  const handleMassSubmit = async (e: React.FormEvent) => {
+  const saveMass = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!massText.trim()) { alert('Please enter at least one match.'); return; }
+    if (!massText.trim()) { 
+      showModal({ type: 'warning', title: 'Empty Input', message: 'Please enter at least one match.' }); 
+      return; 
+    }
     setLoading(true);
-    const lines = massText.split('\n').map(l => l.trim()).filter(Boolean);
-    let successCount = 0;
     try {
+      const lines = massText.trim().split('\n');
+      let successCount = 0;
       for (const line of lines) {
-        const parts = line.split(/[\s,]+/).filter(Boolean);
+        const parts = line.split('\t');
         if (parts.length >= 7) {
+          const m = parts[0];
+          const ts = parts.slice(1, 7);
           await fetch('/api/scout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'SET_MATCH', matchNumber: parts[0], teams: parts.slice(1,7) }),
+            body: JSON.stringify({ type: 'SET_MATCH', matchNumber: m, teams: ts }),
           });
           successCount++;
         }
       }
-      alert(`Successfully saved ${successCount} matches!`);
-      setMassText('');
-      router.push('/dashboard');
-    } catch (err: any) { alert(`Error: ${err.message}`); }
-    finally { setLoading(false); }
+      showModal({ type: 'success', title: 'Success', message: `Successfully saved ${successCount} matches!` });
+    } catch (err: any) { 
+      showModal({ type: 'error', title: 'Error', message: `Error: ${err.message}` }); 
+    } finally { setLoading(false); }
   };
 
   return (
@@ -88,7 +96,7 @@ export default function MatchSetupPage() {
       </div>
 
       {mode === 'single' ? (
-        <form onSubmit={handleSave} className="space-y-5">
+        <form onSubmit={saveSetup} className="space-y-5">
           <div className="p-5 rounded-2xl" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}>
             <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Match Number</label>
             <input
@@ -141,7 +149,7 @@ export default function MatchSetupPage() {
           </div>
         </form>
       ) : (
-        <form onSubmit={handleMassSubmit} className="space-y-5">
+        <form onSubmit={saveMass} className="space-y-5">
           <div className="p-5 rounded-2xl space-y-3" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}>
             <label className="block text-xs font-black uppercase" style={{ color: '#64748b' }}>Format per line: MatchNum Red1 Red2 Red3 Blue1 Blue2 Blue3</label>
             <textarea
