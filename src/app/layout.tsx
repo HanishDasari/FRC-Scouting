@@ -6,7 +6,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Lovat Scouting | 6905',
+  title: '6905 Scouting',
   description: 'FRC Scouting platform for Team 6905, tailored for the 2026 Rebuilt game.',
 };
 
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="container mx-auto flex flex-wrap justify-between items-center gap-y-3">
               <Link href="/" className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2 mt-1 mb-1">
                 <img src="/shark_logo.png" alt="6905 Logo" className="h-8 w-auto object-contain" />
-                <span style={{ color: '#e11d48' }}>6905</span><span className="text-white">Scout</span>
+                <span className="text-white">6905</span><span style={{ color: '#e11d48' }}>Scouting</span>
               </Link>
               <div className="flex gap-4">
                 <Link href="/scout" className="nav-link">Scout</Link>

@@ -27,12 +27,41 @@ export default function LiveDashboardPage() {
       showModal({ type: 'warning', title: 'No Data', message: 'No data available to download.' });
       return;
     }
-    const headers = Object.keys(data.reports[0]).join(',');
-    const rows = data.reports.map(r => Object.values(r).map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+    
+    // Define column mapping for human-readable headers
+    const columnMap: Record<string, string> = {
+      matchNumber: 'Qual Number',
+      teamNumber: 'Team Number',
+      scouterName: 'Scouter',
+      autonScored: 'Auton Scored',
+      scored: 'Teleop Scored',
+      hasHang: 'Hang Successfully',
+      hasMajorIssues: 'Major Issues',
+      defenseRating: 'Defense (%)',
+      notes: 'Strategy Notes',
+      timestamp: 'Export Time'
+    };
+
+    // Sort reports by match number then team number
+    const sortedReports = [...data.reports].sort((a, b) => {
+      if (Number(a.matchNumber) !== Number(b.matchNumber)) return Number(a.matchNumber) - Number(b.matchNumber);
+      return Number(a.teamNumber) - Number(b.teamNumber);
+    });
+
+    const headers = Object.keys(columnMap).join(',');
+    const rows = sortedReports.map(r => {
+      return Object.keys(columnMap).map(key => {
+        let val = r[key];
+        if (typeof val === 'boolean') val = val ? 'Yes' : 'No';
+        if (val === undefined || val === null) val = '';
+        return `"${String(val).replace(/"/g, '""')}"`;
+      }).join(',');
+    });
+
     const csv = [headers, ...rows].join('\n');
     const link = Object.assign(document.createElement('a'), {
       href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
-      download: `live_scouting_${new Date().toISOString().split('T')[0]}.csv`,
+      download: `6905_live_scouting_${new Date().toISOString().split('T')[0]}.csv`,
       style: 'display:none'
     });
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
@@ -82,13 +111,16 @@ export default function LiveDashboardPage() {
       <div className="space-y-8">
         {data.matches.map((match: any) => {
           const mReports = data.reports.filter(r => Number(r.matchNumber) === Number(match.matchNumber));
+          const matchNumStr = String(match.matchNumber);
+          const fontSize = matchNumStr.length > 3 ? 'text-4xl lg:text-5xl' : matchNumStr.length > 2 ? 'text-5xl lg:text-6xl' : 'text-6xl lg:text-7xl';
+
           return (
             <div key={match.matchNumber} className="flex flex-col lg:flex-row gap-6 p-8 rounded-[2.5rem]" style={{ background: '#13131a', border: '1.5px solid #1e1e2e', boxShadow: '0 20px 50px -12px rgba(0,0,0,0.5)' }}>
               {/* Left Side: Match Info Impact */}
               <div className="flex lg:flex-col items-center lg:items-start justify-between lg:justify-center p-6 lg:p-8 rounded-3xl lg:w-48 shrink-0" style={{ background: 'linear-gradient(135deg, #1e1e2e, #13131a)', border: '1.5px solid #2d2d3d' }}>
-                <div className="text-center lg:text-left">
+                <div className="text-center lg:text-left overflow-hidden">
                   <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-1 text-cyan-500/70">Qual</div>
-                  <div className="text-6xl lg:text-7xl font-black italic tracking-tighter text-white leading-none">
+                  <div className={`${fontSize} font-black italic tracking-tighter text-white leading-none transition-all duration-300`}>
                     {match.matchNumber}
                   </div>
                 </div>

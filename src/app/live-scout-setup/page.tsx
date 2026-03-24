@@ -106,7 +106,7 @@ export default function LiveScoutSetupPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 rounded-2xl" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}>
             <div>
               <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Qual (#)</label>
-              <input type="number" required placeholder="e.g. 42" value={matchNumber} onChange={e => setMatchNumber(e.target.value)} className="w-full text-base font-black p-4 rounded-xl outline-none text-white" style={INPUT_STYLE} />
+              <input type="number" required placeholder="e.g. 42" value={matchNumber} onChange={e => setMatchNumber(e.target.value)} className={`w-full ${matchNumber.length > 2 ? 'text-sm' : 'text-base'} font-black p-4 rounded-xl outline-none text-white transition-all`} style={INPUT_STYLE} />
             </div>
             <div>
               <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Time</label>

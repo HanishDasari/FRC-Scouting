@@ -63,12 +63,42 @@ export default function Dashboard() {
       showModal({ type: 'warning', title: 'No Data', message: 'No data available to download.' }); 
       return; 
     }
-    const headers = Object.keys(reports[0]).join(',');
-    const rows = reports.map(r => Object.values(r).map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+
+    // Define column mapping for human-readable headers
+    const columnMap: Record<string, string> = {
+      matchNumber: 'Qual Number',
+      teamNumber: 'Team Number',
+      scouterName: 'Scouter',
+      gameStrategy: 'Strategy',
+      drivetrainType: 'Drivetrain',
+      hasHang: 'Has Hang',
+      hasVision: 'Has Vision',
+      hasMajorIssues: 'Major Issues',
+      shootingAccuracy: 'Shooting Acc',
+      autoAccuracy: 'Auto Acc',
+      timestamp: 'Export Time'
+    };
+
+    // Sort reports by match number then team number
+    const sortedReports = [...reports].sort((a, b) => {
+      if (Number(a.matchNumber) !== Number(b.matchNumber)) return Number(a.matchNumber) - Number(b.matchNumber);
+      return Number(a.teamNumber) - Number(b.teamNumber);
+    });
+
+    const headers = Object.keys(columnMap).join(',');
+    const rows = sortedReports.map(r => {
+      return Object.keys(columnMap).map(key => {
+        let val = (r as any)[key];
+        if (typeof val === 'boolean') val = val ? 'Yes' : 'No';
+        if (val === undefined || val === null) val = '';
+        return `"${String(val).replace(/"/g, '""')}"`;
+      }).join(',');
+    });
+
     const csv = [headers, ...rows].join('\n');
     const link = Object.assign(document.createElement('a'), {
       href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
-      download: `scouting_${new Date().toISOString().split('T')[0]}.csv`,
+      download: `6905_prescouting_${new Date().toISOString().split('T')[0]}.csv`,
       style: 'display:none'
     });
     document.body.appendChild(link); link.click(); document.body.removeChild(link);

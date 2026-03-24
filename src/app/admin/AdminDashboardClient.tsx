@@ -201,7 +201,7 @@ export default function AdminDashboardClient() {
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                        <div>
                          <label className="block text-[10px] font-black uppercase mb-2 tracking-[0.2em] text-gray-500">Qual Number</label>
-                         <input type="number" required value={editForm.matchNumber} onChange={e => setEditForm({...editForm, matchNumber: e.target.value})} className="w-full p-4 rounded-xl outline-none font-black text-white text-lg" style={INPUT_STYLE} />
+                         <input type="number" required value={editForm.matchNumber} onChange={e => setEditForm({...editForm, matchNumber: e.target.value})} className={`w-full p-4 rounded-xl outline-none font-black text-white ${editForm.matchNumber.length > 2 ? 'text-sm' : 'text-lg'} transition-all`} style={INPUT_STYLE} />
                        </div>
                        
                        <div className="space-y-3 p-5 rounded-2xl" style={{ border: '1.5px solid rgba(225,29,72,0.15)', background: 'rgba(225,29,72,0.02)'}}>
@@ -235,7 +235,7 @@ export default function AdminDashboardClient() {
                     <div className="flex items-center gap-8 w-full md:w-auto">
                       <div className="px-6 py-4 rounded-2xl w-36 text-center border border-[#1e1e2e] shadow-inner" style={{ background: 'linear-gradient(135deg, #1e1e2e, #0d0d14)' }}>
                         <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-1">Qual</div>
-                        <div className="font-black text-3xl italic tracking-tighter text-white leading-none">{match.matchNumber}</div>
+                        <div className={`font-black tracking-tighter text-white leading-none ${String(match.matchNumber).length > 3 ? 'text-lg' : String(match.matchNumber).length > 2 ? 'text-xl' : 'text-3xl'} italic transition-all`}>{match.matchNumber}</div>
                       </div>
                       <div className="flex-1 space-y-3">
                         <div className="flex items-center gap-4 group/red">

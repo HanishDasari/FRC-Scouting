@@ -102,7 +102,7 @@ export default function MatchSetupPage() {
             <input
               type="number" required placeholder="e.g. 42" value={matchNumber}
               onChange={e => setMatchNumber(e.target.value)}
-              className="w-full text-2xl font-black p-4 rounded-xl outline-none text-white"
+              className={`w-full ${matchNumber.length > 2 ? 'text-xl' : 'text-2xl'} font-black p-4 rounded-xl outline-none text-white transition-all`}
               style={INPUT_STYLE}
             />
           </div>
