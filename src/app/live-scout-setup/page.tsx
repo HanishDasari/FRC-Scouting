@@ -62,16 +62,31 @@ export default function LiveScoutSetupPage() {
     try {
       for (const line of lines) {
         const parts = line.split(/[\s,]+/).filter(Boolean);
-        if (parts.length >= 9) {
+        if (parts.length >= 7) {
+          let m, t, q, ts;
+          if (parts.length >= 9) {
+            // Format: QualNum Time QualRound Red1 Red2 Red3 Blue1 Blue2 Blue3
+            m = parts[0];
+            t = parts[1];
+            q = parts[2];
+            ts = parts.slice(3, 9);
+          } else {
+            // Format: QualNum Red1 Red2 Red3 Blue1 Blue2 Blue3
+            m = parts[0];
+            t = '';
+            q = '';
+            ts = parts.slice(1, 7);
+          }
+
           await fetch('/api/live-scout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                type: 'SET_MATCH', 
-               matchNumber: parts[0], 
-               time: parts[1], 
-               qualRound: parts[2], 
-               teams: parts.slice(3,9) 
+               matchNumber: m, 
+               time: t, 
+               qualRound: q, 
+               teams: ts 
             }),
           });
           successCount++;
@@ -106,15 +121,15 @@ export default function LiveScoutSetupPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 rounded-2xl" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}>
             <div>
               <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Qual (#)</label>
-              <input type="number" required placeholder="e.g. 42" value={matchNumber} onChange={e => setMatchNumber(e.target.value)} className={`w-full ${matchNumber.length > 2 ? 'text-sm' : 'text-base'} font-black p-4 rounded-xl outline-none text-white transition-all`} style={INPUT_STYLE} />
+              <input type="number" required placeholder="e.g. 42" value={matchNumber} onChange={e => setMatchNumber(e.target.value)} className={`w-full ${matchNumber.length > 2 ? 'text-xl' : 'text-2xl'} font-black p-4 rounded-xl outline-none text-white transition-all`} style={INPUT_STYLE} />
             </div>
             <div>
               <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Time</label>
-              <input type="text" placeholder="e.g. 10:30AM" value={time} onChange={e => setTime(e.target.value)} className="w-full text-base font-black p-4 rounded-xl outline-none text-white" style={INPUT_STYLE} />
+              <input type="text" placeholder="e.g. 10:30AM" value={time} onChange={e => setTime(e.target.value)} className="w-full text-xl font-black p-4 rounded-xl outline-none text-white" style={INPUT_STYLE} />
             </div>
             <div>
               <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Qual Round</label>
-              <input type="text" placeholder="e.g. Q1" value={qualRound} onChange={e => setQualRound(e.target.value)} className="w-full text-base font-black p-4 rounded-xl outline-none text-white" style={INPUT_STYLE} />
+              <input type="text" placeholder="e.g. Q1" value={qualRound} onChange={e => setQualRound(e.target.value)} className="w-full text-xl font-black p-4 rounded-xl outline-none text-white" style={INPUT_STYLE} />
             </div>
           </div>
 
