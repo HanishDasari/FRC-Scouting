@@ -119,7 +119,12 @@ export async function DELETE(req: Request) {
     const { searchParams } = new URL(req.url);
     const matchNumber = searchParams.get('matchNumber');
     const id = searchParams.get('id');
+    const deleteAll = searchParams.get('deleteAll');
 
+    if (deleteAll === 'true') {
+      await query('DELETE FROM matches');
+      return NextResponse.json({ success: true });
+    }
     if (id) {
       await query('DELETE FROM reports WHERE id = $1', [id]);
       await query('DELETE FROM drafts WHERE id = $1', [id]);

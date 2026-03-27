@@ -76,7 +76,12 @@ export async function DELETE(req: Request) {
     const { searchParams } = new URL(req.url);
     const matchNumber = searchParams.get('matchNumber');
     const id = searchParams.get('id');
+    const deleteAll = searchParams.get('deleteAll');
 
+    if (deleteAll === 'true') {
+      await query('DELETE FROM live_matches');
+      return NextResponse.json({ success: true });
+    }
     if (id) {
       await query('DELETE FROM live_reports WHERE id = $1', [id]);
       return NextResponse.json({ success: true });

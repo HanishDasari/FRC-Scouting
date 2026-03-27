@@ -69,6 +69,24 @@ export default function AdminDashboardClient() {
     });
   };
 
+  const deleteAllMatches = async () => {
+    showModal({
+      type: 'confirm',
+      title: 'Wipe All Quals?',
+      message: `CRITICAL: This will permanently delete EVERY qualification match in the ${activeTab === 'normal' ? 'Standard' : 'Live'} roster. This cannot be reversed. Continue?`,
+      onConfirm: async () => {
+        const endpoint = activeTab === 'normal' ? '/api/scout?deleteAll=true' : '/api/live-scout?deleteAll=true';
+        const res = await fetch(endpoint, { method: 'DELETE' });
+        if (res.ok) {
+          showModal({ type: 'success', title: 'Wiped', message: `All ${activeTab === 'normal' ? 'Standard' : 'Live'} matches have been removed.` });
+          fetchData();
+        } else {
+          showModal({ type: 'error', title: 'Error', message: 'Failed to clear matches.' });
+        }
+      }
+    });
+  };
+
   const startEdit = (match: MatchConfig) => {
     setEditingMatch(match.matchNumber);
     setEditForm({
@@ -169,6 +187,14 @@ export default function AdminDashboardClient() {
             <h2 className="font-black uppercase tracking-widest text-xs text-gray-400">
               Managing {activeTab === 'normal' ? 'Standard Scouting' : 'Real-Time Qual'} Roster
             </h2>
+            {matches.length > 0 && (
+              <button 
+                onClick={deleteAllMatches}
+                className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-[10px] tracking-widest bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20"
+              >
+                <Trash2 size={12} /> Clear All Quals
+              </button>
+            )}
           </div>
 
           {matches.length === 0 ? (
