@@ -62,20 +62,22 @@ export default function LiveScoutSetupPage() {
     try {
       for (const line of lines) {
         const parts = line.split(/[\s,]+/).filter(Boolean);
+        // We need at least 7 parts (MatchNum + 6 Teams)
         if (parts.length >= 7) {
-          let m, t, q, ts;
-          if (parts.length >= 9) {
-            // Format: QualNum Time QualRound Red1 Red2 Red3 Blue1 Blue2 Blue3
-            m = parts[0];
-            t = parts[1];
-            q = parts[2];
-            ts = parts.slice(3, 9);
-          } else {
-            // Format: QualNum Red1 Red2 Red3 Blue1 Blue2 Blue3
-            m = parts[0];
-            t = '';
-            q = '';
-            ts = parts.slice(1, 7);
+          const matchNumber = parts[0];
+          const teams = parts.slice(-6); // Last 6 parts are always the teams
+          
+          // Metadata fields are everything between matchNumber and the 6 teams
+          let time = '';
+          let qualRound = '';
+          
+          if (parts.length === 8) {
+            // Probably: Match Time Team1...6
+            time = parts[1];
+          } else if (parts.length >= 9) {
+            // Probably: Match Time Round Team1...6
+            time = parts[1];
+            qualRound = parts[2];
           }
 
           await fetch('/api/live-scout', {
@@ -83,10 +85,10 @@ export default function LiveScoutSetupPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                type: 'SET_MATCH', 
-               matchNumber: m, 
-               time: t, 
-               qualRound: q, 
-               teams: ts 
+               matchNumber, 
+               time, 
+               qualRound, 
+               teams 
             }),
           });
           successCount++;
