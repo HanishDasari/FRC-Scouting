@@ -60,7 +60,10 @@ export default function MatchSetupPage() {
       const lines = massText.trim().split('\n');
       let successCount = 0;
       for (const line of lines) {
-        const parts = line.split('\t');
+        const trimmedLine = line.trim();
+        if (!trimmedLine) continue;
+        
+        const parts = trimmedLine.split(/\s+/);
         if (parts.length >= 7) {
           const m = parts[0];
           const ts = parts.slice(1, 7);
