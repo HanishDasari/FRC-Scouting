@@ -21,22 +21,38 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           .nav-link:hover { color: #e11d48; }
         `}</style>
       </head>
-      <body className={`${inter.className} bg-background text-foreground min-h-screen flex flex-col overflow-x-hidden`}>
+      <body suppressHydrationWarning className={`${inter.className} bg-background text-foreground min-h-screen flex flex-col overflow-x-hidden`}>
         <ModalProvider>
-          <nav style={{ background: '#0d0d14', borderBottom: '1px solid #1e1e2e' }} className="text-white p-4 sticky top-0 z-50">
-            <div className="container mx-auto flex flex-wrap justify-between items-center gap-y-3">
-              <Link href="/" className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2 mt-1 mb-1">
-                <img src="/shark_logo.png" alt="6905 Logo" className="h-8 w-auto object-contain" />
-                <span className="text-white">6905</span><span style={{ color: '#e11d48' }}>Scouting</span>
+          <nav className="glass sticky top-0 z-[70] px-6 py-4 border-b border-white/5">
+            <div className="max-w-7xl mx-auto flex justify-between items-center">
+              <Link href="/" className="flex items-center gap-3 active:scale-95 transition-transform">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                  <img src="/shark_logo.png" alt="6905" className="h-6 w-auto object-contain brightness-110" />
+                </div>
+                <div className="flex flex-col -gap-1">
+                  <span className="text-lg font-black uppercase italic tracking-tighter leading-none">
+                    <span className="text-white">6905</span> <span className="text-primary">Scouting</span>
+                  </span>
+                  <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-muted">Arc Raiders</span>
+                </div>
               </Link>
-              <div className="flex gap-4">
-                <Link href="/scout" className="nav-link">Scout</Link>
-                <Link href="/dashboard" className="nav-link">Dashboard</Link>
-                <Link href="/admin" className="nav-link">Admin</Link>
+
+              <div className="flex items-center gap-1 p-1 rounded-2xl bg-black/20 border border-white/5 overflow-x-auto no-scrollbar">
+                {[
+                  { name: 'Home', href: '/' },
+                  { name: 'Prescout', href: '/dashboard' },
+                  { name: 'Live', href: '/live-dashboard' },
+                  { name: 'Setup', href: '/setup' },
+                  { name: 'Admin', href: '/admin' }
+                ].map(item => (
+                  <Link key={item.name} href={item.href} className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-muted hover:text-white hover:bg-white/5 transition-all whitespace-nowrap">
+                    {item.name}
+                  </Link>
+                ))}
               </div>
             </div>
           </nav>
-          <main className="flex-1" style={{ background: '#0a0a0f' }}>
+          <main className="relative z-10">
             {children}
           </main>
         </ModalProvider>

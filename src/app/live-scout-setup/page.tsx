@@ -2,33 +2,24 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Save, LayoutDashboard, ListPlus } from 'lucide-react';
-
-const INPUT_STYLE = { background: '#0d0d14', border: '1.5px solid #1e1e2e', color: '#f1f5f9' } as React.CSSProperties;
-
+import { Activity, Save, ChevronLeft, Link as LinkIcon } from 'lucide-react';
 import { useModal } from '@/context/ModalContext';
+
+const INPUT_CLS = 'w-full p-4 rounded-xl font-bold outline-none text-white transition-all focus:ring-2 focus:ring-accent/50';
+const INPUT_STYLE = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' } as React.CSSProperties;
+const LABEL_CLS = 'block text-[10px] font-bold uppercase tracking-widest mb-2 text-muted';
 
 export default function LiveScoutSetupPage() {
   const router = useRouter();
   const { showModal } = useModal();
   const [matchNumber, setMatchNumber] = useState('');
-  const [time, setTime] = useState('');
-  const [qualRound, setQualRound] = useState('');
-  const [teams, setTeams] = useState(['', '', '', '', '', '']);
+  const [teamNumber, setTeamNumber] = useState('');
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<'single'|'mass'>('single');
-  const [massText, setMassText] = useState('');
 
-  const handleTeamChange = (index: number, value: string) => {
-    const newTeams = [...teams];
-    newTeams[index] = value;
-    setTeams(newTeams);
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
+  const saveSetup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!matchNumber || teams.some(t => !t)) {
-      showModal({ type: 'warning', title: 'Missing Info', message: 'Please fill in the match number and all 6 team numbers.' });
+    if (!matchNumber || !teamNumber) {
+      showModal({ type: 'warning', title: 'Incomplete', message: 'Specify both match and team identifiers for real-time tracking.' });
       return;
     }
     setLoading(true);
@@ -36,174 +27,70 @@ export default function LiveScoutSetupPage() {
       const res = await fetch('/api/live-scout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'SET_MATCH', matchNumber, time, qualRound, teams }),
+        body: JSON.stringify({ type: 'SET_MATCH', matchNumber, teams: [teamNumber] }),
       });
-      const data = await res.json();
       if (res.ok) {
-        showModal({ type: 'success', title: 'Match Saved', message: 'Match setup saved!' });
-        setTimeout(() => router.push('/live-dashboard'), 2000);
+        showModal({ type: 'success', title: 'Telemetry Ready', message: 'Link established with the target team.', onConfirm: () => router.push(`/live-scout?team=${teamNumber}&match=${matchNumber}`) });
       } else {
-        showModal({ type: 'error', title: 'Save Failed', message: `Failed to save: ${data.error || res.status}` });
+        showModal({ type: 'error', title: 'Sync Error', message: 'Failed to establish real-time link.' });
       }
-    } catch (err: any) { 
-      showModal({ type: 'error', title: 'Error', message: `Error: ${err.message}` }); 
-    } finally { setLoading(false); }
-  };
-
-  const handleMassSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!massText.trim()) { 
-      showModal({ type: 'warning', title: 'Empty Input', message: 'Please enter at least one match.' }); 
-      return; 
-    }
-    setLoading(true);
-    const lines = massText.split('\n').map(l => l.trim()).filter(Boolean);
-    let successCount = 0;
-    try {
-      for (const line of lines) {
-        const parts = line.split(/[\s,]+/).filter(Boolean);
-        // We need at least 7 parts (MatchNum + 6 Teams)
-        if (parts.length >= 7) {
-          const matchNumber = parts[0];
-          const teams = parts.slice(-6); // Last 6 parts are always the teams
-          
-          // Metadata fields are everything between matchNumber and the 6 teams
-          let time = '';
-          let qualRound = '';
-          
-          if (parts.length === 8) {
-            // Probably: Match Time Team1...6
-            time = parts[1];
-          } else if (parts.length >= 9) {
-            // Probably: Match Time Round Team1...6
-            time = parts[1];
-            qualRound = parts[2];
-          }
-
-          await fetch('/api/live-scout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-               type: 'SET_MATCH', 
-               matchNumber, 
-               time, 
-               qualRound, 
-               teams 
-            }),
-          });
-          successCount++;
-        }
-      }
-      showModal({ type: 'success', title: 'Success', message: `Successfully saved ${successCount} matches!` });
-      setMassText('');
-      setTimeout(() => router.push('/live-dashboard'), 2000);
-    } catch (err: any) { 
-      showModal({ type: 'error', title: 'Error', message: `Error: ${err.message}` }); 
+    } catch { 
+      showModal({ type: 'error', title: 'Terminal Error', message: 'Critical failure during telemetry initialization.' }); 
     } finally { setLoading(false); }
   };
 
   return (
-    <div className="max-w-xl mx-auto py-12 px-4" style={{ minHeight: '100vh', background: '#0a0a0f' }}>
-      <div className="flex items-center justify-between gap-3 mb-10 pb-5" style={{ borderBottom: '1.5px solid #1e1e2e' }}>
-        <div className="flex items-center gap-3">
-          <div className="p-3 rounded-2xl" style={{ background: 'rgba(245,158,11,0.15)' }}>
-            <Users style={{ color: '#f59e0b' }} size={28} />
+    <div className="max-w-xl mx-auto py-12 px-6">
+      {/* Header */}
+      <div className="flex flex-col gap-8 mb-12">
+        <div className="flex items-center gap-4">
+          <button onClick={() => router.push('/')} className="p-2.5 rounded-xl glass hover:bg-white/5 transition-all text-white/70">
+            <ChevronLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-2xl font-black italic uppercase tracking-tighter text-white">Live Initialization</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent glow-accent" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted">Real-Time Data Feed</span>
+            </div>
           </div>
-          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white">Live Qual Setup</h1>
-        </div>
-        
-        <div className="flex bg-[#13131a] p-1 rounded-xl border border-[#1e1e2e]">
-           <button onClick={() => setMode('single')} type="button" className="px-5 py-2 text-[10px] font-black uppercase rounded-lg transition-all" style={mode === 'single' ? { background: '#f59e0b', color: 'white' } : { color: '#64748b' }}>Single</button>
-           <button onClick={() => setMode('mass')} type="button" className="px-5 py-2 text-[10px] font-black uppercase rounded-lg transition-all" style={mode === 'mass' ? { background: '#3b82f6', color: 'white' } : { color: '#64748b' }}>Mass</button>
         </div>
       </div>
 
-      {mode === 'single' ? (
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 rounded-2xl" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}>
-            <div>
-              <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Qual (#)</label>
-              <input type="number" required placeholder="e.g. 42" value={matchNumber} onChange={e => setMatchNumber(e.target.value)} className={`w-full ${matchNumber.length > 2 ? 'text-xl' : 'text-2xl'} font-black p-4 rounded-xl outline-none text-white transition-all`} style={INPUT_STYLE} />
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Time</label>
-              <input type="text" placeholder="e.g. 10:30AM" value={time} onChange={e => setTime(e.target.value)} className="w-full text-xl font-black p-4 rounded-xl outline-none text-white" style={INPUT_STYLE} />
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase mb-2" style={{ color: '#64748b' }}>Qual Round</label>
-              <input type="text" placeholder="e.g. Q1" value={qualRound} onChange={e => setQualRound(e.target.value)} className="w-full text-xl font-black p-4 rounded-xl outline-none text-white" style={INPUT_STYLE} />
-            </div>
+      <div className="glass-card p-10 rounded-[3rem] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-[100px] -mr-32 -mt-32 pointer-events-none" />
+        
+        <form onSubmit={saveSetup} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div>
+            <label className={LABEL_CLS}>Qualification Mission</label>
+            <input type="number" required placeholder="Match #" value={matchNumber} onChange={e => setMatchNumber(e.target.value)} className={`${INPUT_CLS} text-2xl tracking-tighter focus:ring-accent/30`} style={INPUT_STYLE} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-3 p-5 rounded-2xl" style={{ background: '#13131a', border: '1.5px solid rgba(225,29,72,0.25)' }}>
-              <h2 className="font-black uppercase text-sm pb-2" style={{ color: '#e11d48', borderBottom: '1px solid rgba(225,29,72,0.2)' }}>Red Alliance</h2>
-              {[0, 1, 2].map(i => (
-                <input
-                  key={i} type="number" required placeholder={`Red Team ${i + 1}`}
-                  value={teams[i]} onChange={e => handleTeamChange(i, e.target.value)}
-                  className="w-full p-4 rounded-xl outline-none font-bold text-center text-white"
-                  style={{ ...INPUT_STYLE, border: '1.5px solid rgba(225,29,72,0.2)' }}
-                />
-              ))}
-            </div>
-
-            <div className="space-y-3 p-5 rounded-2xl" style={{ background: '#13131a', border: '1.5px solid rgba(59,130,246,0.25)' }}>
-              <h2 className="font-black uppercase text-sm pb-2" style={{ color: '#3b82f6', borderBottom: '1px solid rgba(59,130,246,0.2)' }}>Blue Alliance</h2>
-              {[3, 4, 5].map(i => (
-                <input
-                  key={i} type="number" required placeholder={`Blue Team ${i - 2}`}
-                  value={teams[i]} onChange={e => handleTeamChange(i, e.target.value)}
-                  className="w-full p-4 rounded-xl outline-none font-bold text-center text-white"
-                  style={{ ...INPUT_STYLE, border: '1.5px solid rgba(59,130,246,0.2)' }}
-                />
-              ))}
-            </div>
+          <div>
+            <label className={LABEL_CLS}>Target Team Identifier</label>
+            <input type="number" required placeholder="Team #" value={teamNumber} onChange={e => setTeamNumber(e.target.value)} className={`${INPUT_CLS} text-4xl font-black italic tracking-tighter text-accent`} style={INPUT_STYLE} />
           </div>
 
-          <div className="flex flex-col gap-3 pt-2">
-            <button type="submit" disabled={loading}
-              className="w-full flex justify-center items-center gap-2 text-white p-5 rounded-2xl font-black uppercase tracking-widest text-lg transition-all active:scale-95"
-              style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', boxShadow: '0 10px 30px rgba(245,158,11,0.35)' }}>
-              {loading ? 'Saving...' : <><Save size={22} /> Initialize Real-Time Qual</>}
-            </button>
-            <button type="button" onClick={() => router.push('/live-dashboard')}
-              className="w-full flex justify-center items-center gap-2 p-5 rounded-2xl font-black uppercase tracking-widest text-base transition-all active:scale-95"
-              style={{ background: '#13131a', border: '1.5px solid #1e1e2e', color: '#94a3b8' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e1e2e'; e.currentTarget.style.color = '#94a3b8'; }}>
-              <LayoutDashboard size={20} /> Back to Real-Time Status
-            </button>
+          <div className="p-5 rounded-2xl glass border-accent/10 flex items-start gap-4">
+             <div className="p-2 rounded-lg bg-accent/20">
+                <LinkIcon size={16} className="text-accent" />
+             </div>
+             <p className="text-[10px] font-bold text-muted uppercase tracking-wider leading-relaxed">
+                Initializing a live link will override any existing unsynced data for this team-match pairing.
+             </p>
           </div>
+
+          <button type="submit" disabled={loading} className="w-full py-5 rounded-[2rem] bg-accent text-white font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-accent/20 transition-all active:scale-95 flex items-center justify-center gap-2 mt-4">
+             {loading ? 'Initializing Stream...' : <><Activity size={18} /> Establish Live Link</>}
+          </button>
         </form>
-      ) : (
-        <form onSubmit={handleMassSubmit} className="space-y-5">
-          <div className="p-5 rounded-2xl space-y-3" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}>
-            <label className="block text-xs font-black uppercase" style={{ color: '#64748b' }}>Format per line: QualNum Time QualRound Red1 Red2 Red3 Blue1 Blue2 Blue3</label>
-            <textarea
-              required rows={8}
-              placeholder={'1 10:00AM Q1 254 118 1678 1323 3310 4414\n2 10:15AM Q2 1690 2056 2910 1671 503 604'}
-              value={massText} onChange={e => setMassText(e.target.value)}
-              className="w-full text-xs sm:text-sm font-bold p-4 rounded-xl outline-none text-white font-mono resize-none leading-relaxed whitespace-pre"
-              style={INPUT_STYLE}
-            />
-          </div>
-          <div className="flex flex-col gap-3 pt-2">
-            <button type="submit" disabled={loading}
-              className="w-full flex justify-center items-center gap-2 text-white p-5 rounded-2xl font-black uppercase tracking-widest text-lg transition-all active:scale-95"
-              style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)', boxShadow: '0 10px 30px rgba(59,130,246,0.35)' }}>
-              {loading ? 'Processing...' : <><ListPlus size={22} /> Process All Quals</>}
-            </button>
-            <button type="button" onClick={() => router.push('/live-dashboard')}
-              className="w-full flex justify-center items-center gap-2 p-5 rounded-2xl font-black uppercase tracking-widest text-base transition-all active:scale-95"
-              style={{ background: '#13131a', border: '1.5px solid #1e1e2e', color: '#94a3b8' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#e11d48'; e.currentTarget.style.color = '#e11d48'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e1e2e'; e.currentTarget.style.color = '#94a3b8'; }}>
-              <LayoutDashboard size={20} /> Back to Real-Time Status
-            </button>
-          </div>
-        </form>
-      )}
+      </div>
+
+      <div className="mt-12 text-center">
+         <button onClick={() => router.push('/')} className="text-[10px] font-black uppercase tracking-widest text-muted hover:text-white transition-colors">
+            Return to Command Center
+         </button>
+      </div>
     </div>
   );
 }

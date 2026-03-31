@@ -21,7 +21,14 @@ if (isDev) {
 
 export async function query(text: string, params: any[] = []) {
   if (isDev) {
-    let sqliteText = text.replace(/\$\d+/g, '?');
+    let sqliteText = text;
+    const sqliteParamsObj: any = {};
+    params.forEach((val, i) => {
+      const pName = `arg${i + 1}`;
+      sqliteText = sqliteText.replace(new RegExp(`\\$${i + 1}(?!\\d)`, 'g'), `@${pName}`);
+      sqliteParamsObj[pName] = typeof val === 'boolean' ? (val ? 1 : 0) : val;
+    });
+
     sqliteText = sqliteText.replace(/SERIAL PRIMARY KEY/g, 'INTEGER PRIMARY KEY AUTOINCREMENT');
     
     if (sqliteText.includes('CREATE TABLE')) {
@@ -29,13 +36,12 @@ export async function query(text: string, params: any[] = []) {
       return { rows: [] };
     }
 
-    const sqliteParams = params.map(p => typeof p === 'boolean' ? (p ? 1 : 0) : p);
     const isSelect = sqliteText.trim().toUpperCase().startsWith('SELECT');
 
     try {
       const stmt = localDb.prepare(sqliteText);
       if (isSelect) {
-        const rows = stmt.all(...sqliteParams);
+        const rows = stmt.all(sqliteParamsObj);
         const boolFields = ['hasHang', 'hasVision', 'hasMajorIssues'];
         rows.forEach((row: any) => {
           boolFields.forEach(f => {
@@ -44,7 +50,7 @@ export async function query(text: string, params: any[] = []) {
         });
         return { rows };
       } else {
-        const info = stmt.run(...sqliteParams);
+        const info = stmt.run(sqliteParamsObj);
         return { rows: [], rowCount: info.changes };
       }
     } catch (err) {

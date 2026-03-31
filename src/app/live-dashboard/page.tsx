@@ -11,6 +11,7 @@ export default function LiveDashboardPage() {
   const { showModal } = useModal();
   const [data, setData] = useState<{ matches: any[], reports: any[] }>({ matches: [], reports: [] });
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
   const fetchData = useCallback(() => {
     fetch('/api/live-scout')
@@ -23,48 +24,7 @@ export default function LiveDashboardPage() {
   }, []);
 
   const downloadData = () => {
-    if (!data.reports || data.reports.length === 0) {
-      showModal({ type: 'warning', title: 'No Data', message: 'No data available to download.' });
-      return;
-    }
-    
-    // Define column mapping for human-readable headers
-    const columnMap: Record<string, string> = {
-      matchNumber: 'Qual Number',
-      teamNumber: 'Team Number',
-      scouterName: 'Scouter',
-      autonScored: 'Auton Scored',
-      scored: 'Teleop Scored',
-      hasHang: 'Hang Successfully',
-      hasMajorIssues: 'Major Issues',
-      defenseRating: 'Defense (%)',
-      notes: 'Strategy Notes',
-      timestamp: 'Export Time'
-    };
-
-    // Sort reports by match number then team number
-    const sortedReports = [...data.reports].sort((a, b) => {
-      if (Number(a.matchNumber) !== Number(b.matchNumber)) return Number(a.matchNumber) - Number(b.matchNumber);
-      return Number(a.teamNumber) - Number(b.teamNumber);
-    });
-
-    const headers = Object.keys(columnMap).join(',');
-    const rows = sortedReports.map(r => {
-      return Object.keys(columnMap).map(key => {
-        let val = r[key];
-        if (typeof val === 'boolean') val = val ? 'Yes' : 'No';
-        if (val === undefined || val === null) val = '';
-        return `"${String(val).replace(/"/g, '""')}"`;
-      }).join(',');
-    });
-
-    const csv = [headers, ...rows].join('\n');
-    const link = Object.assign(document.createElement('a'), {
-      href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
-      download: `6905_live_scouting_${new Date().toISOString().split('T')[0]}.csv`,
-      style: 'display:none'
-    });
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    window.location.href = '/api/export?type=live';
   };
 
   useEffect(() => {
@@ -98,18 +58,32 @@ export default function LiveDashboardPage() {
           </div>
         </div>
         
-        <button onClick={downloadData}
-          className="flex items-center gap-2 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all active:scale-95"
-          style={{ background: '#13131a', border: '1.5px solid #1e1e2e', color: '#94a3b8' }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = '#06b6d4'; e.currentTarget.style.color = '#06b6d4'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e1e2e'; e.currentTarget.style.color = '#94a3b8'; }}
-        >
-          <Download size={18} /> Export CSV
-        </button>
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64 group">
+            <input type="text" placeholder="Search team or match..." value={search} onChange={e => setSearch(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 rounded-2xl glass border-white/5 font-bold text-xs outline-none focus:ring-2 focus:ring-accent/50 transition-all text-white" />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors">
+              <Users size={16} />
+            </div>
+          </div>
+          <button onClick={downloadData}
+            className="flex items-center gap-2 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all active:scale-95"
+            style={{ background: '#13131a', border: '1.5px solid #1e1e2e', color: '#94a3b8' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#06b6d4'; e.currentTarget.style.color = '#06b6d4'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e1e2e'; e.currentTarget.style.color = '#94a3b8'; }}
+          >
+            <Download size={18} /> Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="space-y-8">
-        {data.matches.map((match: any) => {
+        {data.matches.filter(match => {
+          if (!search) return true;
+          const s = search.toLowerCase().replace('match ', '').replace('team ', '').trim();
+          return match.matchNumber.toString().includes(s) || 
+                 match.teams.some((t: any) => t.toString().includes(s));
+        }).map((match: any) => {
           const mReports = data.reports.filter(r => Number(r.matchNumber) === Number(match.matchNumber));
           const matchNumStr = String(match.matchNumber);
           const fontSize = matchNumStr.length > 3 ? 'text-4xl lg:text-5xl' : matchNumStr.length > 2 ? 'text-5xl lg:text-6xl' : 'text-6xl lg:text-7xl';

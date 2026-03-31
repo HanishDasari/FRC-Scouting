@@ -6,46 +6,91 @@ async function ensureInit() {
   if (!initialized) { await initDB(); initialized = true; }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await ensureInit();
-    const result = await query('SELECT * FROM reports ORDER BY "createdAt" DESC');
-    const rawReports = result.rows;
+    const { searchParams } = new URL(req.url);
+    const type = searchParams.get('type') || 'prescout';
 
-    if (rawReports.length === 0) {
-      return NextResponse.json({ error: 'No data to export' }, { status: 404 });
-    }
+    if (type === 'live') {
+      const result = await query('SELECT * FROM live_reports ORDER BY "matchNumber" ASC, "teamNumber" ASC');
+      const data = result.rows;
 
-    const headers = [
-      'ID', 'Status', 'Scouter', 'Team #', 'Match #',
-      'Strategy', 'Drive Train', 'Weight', 'Scoring Range',
-      'Storage', 'Outtake', 'Driver Exp', 'Auto Description',
-      'Auto Positions', 'Auto Accuracy', 'Hang', 'Shooting Accuracy',
-      'Cycle Time', 'Intake', 'Avg Fuel', 'Vision', 'Major Issues', 'Common Issue',
-      'Timestamp'
-    ];
-
-    const rows = rawReports.map((r: any) => [
-      r.id, r.status, r.scouterName, r.teamNumber, r.matchNumber,
-      `"${(r.gameStrategy || '').replace(/"/g, '""')}"`,
-      r.drivetrainType, r.robotWeight, r.scoringRange,
-      r.storageCapacity, r.outtakeType, r.driverExperience,
-      `"${(r.autoDescription || '').replace(/"/g, '""')}"`,
-      r.autoStartPositions, r.autoAccuracy, r.hasHang, r.shootingAccuracy,
-      r.cycleTime, r.intakeType, r.avgFuelScored, r.hasVision,
-      r.hasMajorIssues,
-      `"${(r.commonIssue || '').replace(/"/g, '""')}"`,
-      r.createdAt
-    ]);
-
-    const csvContent = [headers.join(','), ...rows.map((row: any[]) => row.join(','))].join('\n');
-
-    return new NextResponse(csvContent, {
-      headers: {
-        'Content-Type': 'text/csv',
-        'Content-Disposition': 'attachment; filename=frc_scouting_data.csv'
+      if (data.length === 0) {
+        return NextResponse.json({ error: 'No live data to export' }, { status: 404 });
       }
-    });
+
+      const headers = [
+        'ID', 'Scouter Name', 'Team Number', 'Match Number',
+        'Auton Cycles', 'Teleop Cycles', 'Successful Hang?', 'Observational Notes', 'Timestamp'
+      ];
+
+      const rows = data.map((r: any) => [
+        r.id, 
+        `"${(r.scouterName || '').replace(/"/g, '""')}"`,
+        r.teamNumber, 
+        r.matchNumber,
+        r.autonScored, 
+        r.scored,
+        r.hasHang ? 'Yes' : 'No',
+        `"${(r.comments || '').replace(/"/g, '""')}"`,
+        r.createdAt
+      ]);
+
+      const csvContent = [headers.join(','), ...rows.map((row: any[]) => row.join(','))].join('\n');
+
+      return new NextResponse(csvContent, {
+        headers: {
+          'Content-Type': 'text/csv',
+          'Content-Disposition': `attachment; filename=6905_live_scouting_${new Date().toISOString().split('T')[0]}.csv`
+        }
+      });
+    } else {
+      // Default: prescout
+      const result = await query('SELECT * FROM reports ORDER BY "matchNumber" ASC, "teamNumber" ASC');
+      const data = result.rows;
+
+      if (data.length === 0) {
+        return NextResponse.json({ error: 'No prescout data to export' }, { status: 404 });
+      }
+
+      const headers = [
+        'ID', 'Status', 'Scouter Identity', 'Team Identifier', 'Qualification',
+        'Primary Role', 'Drive System', 'Operational Weight', 'Scoring Distance',
+        'Storage Capacity', 'Mechanism / Outtake', 'Experience Level', 'Intake Source',
+        'Routine Description', 'Origin Positions', 'Execution Accuracy', 
+        'Integrated Climber?', 'Shot Precision', 'Cycle Rhythm', 
+        'Average Scoring', 'Optical Processing?', 
+        'Critical Instability?', 'Identified Failures',
+        'Timestamp'
+      ];
+
+      const rows = data.map((r: any) => [
+        r.id, r.status, 
+        `"${(r.scouterName || '').replace(/"/g, '""')}"`,
+        r.teamNumber, r.matchNumber,
+        `"${(r.gameStrategy || '').replace(/"/g, '""')}"`,
+        r.drivetrainType, r.robotWeight, r.scoringRange,
+        r.storageCapacity, r.outtakeType, r.driverExperience, r.intakeType,
+        `"${(r.autoDescription || '').replace(/"/g, '""')}"`,
+        r.autoStartPositions, r.autoAccuracy, 
+        r.hasHang ? 'Yes' : 'No', r.shootingAccuracy,
+        r.cycleTime, r.avgFuelScored, 
+        r.hasVision ? 'Yes' : 'No',
+        r.hasMajorIssues ? 'Yes' : 'No',
+        `"${(r.commonIssue || '').replace(/"/g, '""')}"`,
+        r.createdAt
+      ]);
+
+      const csvContent = [headers.join(','), ...rows.map((row: any[]) => row.join(','))].join('\n');
+
+      return new NextResponse(csvContent, {
+        headers: {
+          'Content-Type': 'text/csv',
+          'Content-Disposition': `attachment; filename=6905_prescouting_${new Date().toISOString().split('T')[0]}.csv`
+        }
+      });
+    }
   } catch (error) {
     console.error('Export failed:', error);
     return NextResponse.json({ error: 'Export failed' }, { status: 500 });

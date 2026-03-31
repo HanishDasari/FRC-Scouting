@@ -1,145 +1,87 @@
 'use client';
 
 import Link from 'next/link';
-import { Users, ClipboardList, LayoutDashboard, Activity, LineChart } from 'lucide-react';
+import { Users, LayoutDashboard, Activity, LineChart, ChevronRight } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-[85vh] text-center px-4 overflow-hidden">
-      {/* Giant 6905 watermark */}
-      <div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-        aria-hidden="true"
-      >
-        <span
-          className="text-[28vw] font-black italic leading-none tracking-tighter"
-          style={{
-            color: 'transparent',
-            WebkitTextStroke: '1px rgba(225,29,72,0.12)',
-            background: 'linear-gradient(135deg, rgba(225,29,72,0.07) 0%, rgba(245,158,11,0.05) 100%)',
-            WebkitBackgroundClip: 'text',
-            filter: 'blur(0px)',
-            userSelect: 'none',
-          }}
-        >
-          6905
-        </span>
+    <div className="relative flex flex-col items-center justify-center min-h-[90vh] px-4 py-20 overflow-hidden">
+      {/* Glassy Background Accents */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full" />
+        <div className="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] rounded-full" />
       </div>
-
-      {/* Glow blobs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(225,29,72,0.08) 0%, transparent 70%)' }} />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%)' }} />
-
-      <div className="relative z-10 mb-12">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="w-12 h-1" style={{ background: 'linear-gradient(90deg, #e11d48, transparent)' }} />
-          <span className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#e11d48' }}>FRC Albany 2026</span>
-          <div className="w-12 h-1" style={{ background: 'linear-gradient(90deg, transparent, #e11d48)' }} />
+      
+      <div className="relative z-10 max-w-4xl w-full">
+        {/* Hero Section */}
+        <div className="text-center mb-20 space-y-4">
+          <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full glass border-primary/10 mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">System Online: Albany 2026</span>
+          </div>
+      <h1 className="text-7xl sm:text-9xl font-black uppercase italic tracking-tighter leading-[0.8] text-white animate-in fade-in zoom-in duration-1000 text-center">
+        6905<br />
+        <span className="text-primary tracking-tight">SCOUTING</span>
+      </h1>
+          <p className="text-xs font-bold uppercase tracking-[0.5em] text-muted pt-4">
+            Advanced Intelligence Framework • Team 6905
+          </p>
         </div>
-        <h1 className="text-6xl sm:text-8xl font-black uppercase italic tracking-tighter mb-3 leading-none">
-          <span style={{ color: '#e11d48' }}>6905</span>
-          <br />
-          <span className="text-white">SCOUTING</span>
-        </h1>
-        <p className="text-sm font-bold uppercase tracking-[0.4em]" style={{ color: '#64748b' }}>
-          Raiders of the Arc
-        </p>
-      </div>
 
-      <div className="relative z-10 w-full max-w-5xl space-y-12">
-        <section>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-[2px] flex-1" style={{ background: 'linear-gradient(90deg, transparent, rgba(225,29,72,0.3))' }} />
-            <h2 className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#e11d48' }}>Prescouting Operations</h2>
-            <div className="h-[2px] flex-1" style={{ background: 'linear-gradient(90deg, rgba(225,29,72,0.3), transparent)' }} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <Link
-              href="/setup"
-              className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95 text-center"
-              style={{
-                background: 'linear-gradient(135deg, #1a0a12 0%, #13131a 100%)',
-                borderColor: 'rgba(225,29,72,0.3)',
-                boxShadow: '0 0 0 0 rgba(225,29,72,0)',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(225,29,72,0.2)')}
-              onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(225,29,72,0)')}
-            >
-              <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(225,29,72,0.15)' }}>
-                <Users size={36} style={{ color: '#e11d48' }} />
+        {/* Action Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+          {/* Prescouting Card */}
+          <div className="glass-card p-10 rounded-[3rem] group relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-primary/20 transition-all duration-700" />
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 mb-8">
+                <Users className="text-primary" size={28} />
               </div>
-              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Prescout Qual Setup</span>
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Configure 6-Team Roster</span>
-            </Link>
-
-            <Link
-              href="/dashboard"
-              className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95 text-center"
-              style={{
-                background: 'linear-gradient(135deg, #0a131a 0%, #13131a 100%)',
-                borderColor: 'rgba(59,130,246,0.3)',
-                boxShadow: '0 0 0 0 rgba(59,130,246,0)',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(59,130,246,0.15)')}
-              onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(59,130,246,0)')}
-            >
-              <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(59,130,246,0.12)' }}>
-                <LayoutDashboard size={36} style={{ color: '#3b82f6' }} />
+              <h2 className="text-2xl font-black uppercase italic tracking-tight text-white mb-2">Prescouting</h2>
+              <p className="text-sm text-muted font-medium mb-10 leading-relaxed">
+                Strategic data collection and alliance management for upcoming qualifications.
+              </p>
+              <div className="mt-auto flex flex-col gap-3">
+                <Link href="/setup" className="flex items-center justify-between p-4 rounded-2xl bg-primary text-white font-black uppercase text-[10px] tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/20">
+                  Initialize Roster <ChevronRight size={14} />
+                </Link>
+                <Link href="/dashboard" className="flex items-center justify-between p-4 rounded-2xl bg-blue-600 text-white font-black uppercase text-[10px] tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-blue-500/20">
+                  Access Dashboard <ChevronRight size={14} />
+                </Link>
               </div>
-              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Prescout Status</span>
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Live Alliance Tracking</span>
-            </Link>
+            </div>
           </div>
-        </section>
 
-        <section>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-[2px] flex-1" style={{ background: 'linear-gradient(90deg, transparent, rgba(245,158,11,0.3))' }} />
-            <h2 className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#f59e0b' }}>Real-Time Intelligence</h2>
-            <div className="h-[2px] flex-1" style={{ background: 'linear-gradient(90deg, rgba(245,158,11,0.3), transparent)' }} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <Link
-              href="/live-scout-setup"
-              className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95 text-center"
-              style={{
-                background: 'linear-gradient(135deg, #1f1406 0%, #13131a 100%)',
-                borderColor: 'rgba(245,158,11,0.3)',
-                boxShadow: '0 0 0 0 rgba(245,158,11,0)',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(245,158,11,0.2)')}
-              onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(245,158,11,0)')}
-            >
-              <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(245,158,11,0.15)' }}>
-                <Users size={36} style={{ color: '#f59e0b' }} />
+          {/* Real-Time Card */}
+          <div className="glass-card p-10 rounded-[3rem] group relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-accent/20 transition-all duration-700" />
+             <div className="relative z-10 flex flex-col h-full">
+              <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20 mb-8">
+                <Activity className="text-accent" size={28} />
               </div>
-              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Live Qual Setup</span>
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Configure Timed Quals</span>
-            </Link>
-
-            <Link
-              href="/live-dashboard"
-              className="group flex flex-col items-center justify-center p-8 rounded-3xl border transition-all duration-300 active:scale-95 text-center"
-              style={{
-                background: 'linear-gradient(135deg, #021217 0%, #13131a 100%)',
-                borderColor: 'rgba(6,182,212,0.3)',
-                boxShadow: '0 0 0 0 rgba(6,182,212,0)',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(6,182,212,0.15)')}
-              onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(6,182,212,0)')}
-            >
-              <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(6,182,212,0.12)' }}>
-                <LineChart size={36} style={{ color: '#06b6d4' }} />
+              <h2 className="text-2xl font-black uppercase italic tracking-tight text-white mb-2">Real Time Match Scouting</h2>
+              <p className="text-sm text-muted font-medium mb-10 leading-relaxed">
+                High-speed match observation and real-time performance telemetry.
+              </p>
+              <div className="mt-auto flex flex-col gap-3">
+                <Link href="/live-scout-setup" className="flex items-center justify-between p-4 rounded-2xl bg-primary text-white font-black uppercase text-[10px] tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/20">
+                  Initialize <ChevronRight size={14} />
+                </Link>
+                <Link href="/live-dashboard" className="flex items-center justify-between p-4 rounded-2xl bg-cyan-600 text-white font-black uppercase text-[10px] tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-cyan-500/20">
+                  Match Scouting Dashboard <ChevronRight size={14} />
+                </Link>
               </div>
-              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Real-Time Status</span>
-              <span className="text-xs font-bold uppercase tracking-wider text-center" style={{ color: '#64748b' }}>Real-Time Qual Leaderboard</span>
-            </Link>
+            </div>
           </div>
-        </section>
-      </div>
+        </div>
 
-      <div className="relative z-10 mt-14 text-xs font-black uppercase tracking-[0.3em]" style={{ color: '#1e293b' }}>
-        Built for the Drive Team and Strategy Lead
+        {/* Footer info */}
+        <div className="mt-20 text-center opacity-20">
+           <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white">Built for the Drive Team and Strategy Lead</span>
+        </div>
       </div>
     </div>
   );
