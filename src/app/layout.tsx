@@ -30,8 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <span className="text-white">6905</span><span style={{ color: '#e11d48' }}>Scouting</span>
               </Link>
               <div className="flex gap-4">
-                <Link href="/scout" className="nav-link">Scout</Link>
-                <Link href="/dashboard" className="nav-link">Dashboard</Link>
+                <Link href="/dashboard" className="nav-link">Pit Scouting</Link>
+                <Link href="/live-dashboard" className="nav-link">Match Scouting</Link>
                 <Link href="/admin" className="nav-link">Admin</Link>
               </div>
             </div>
