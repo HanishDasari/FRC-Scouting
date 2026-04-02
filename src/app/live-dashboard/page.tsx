@@ -35,7 +35,7 @@ export default function LiveDashboardPage() {
       scouterName: 'Scouter',
       autonScored: 'Auton Scored',
       scored: 'Teleop Scored',
-      hasHang: 'Hang Successfully',
+      hasHang: 'Hanging (Yes/No)',
       comments: 'Comments',
       createdAt: 'Submission Time'
     };

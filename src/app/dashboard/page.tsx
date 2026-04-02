@@ -96,7 +96,7 @@ export default function Dashboard() {
       shootingAccuracy: 'Shooting Accuracy',
       cycleTime: 'Cycle Time',
       avgFuelScored: 'Avg Fuel Scored',
-      hasHang: 'Has Hang',
+      hasHang: 'Hanging (Yes/No)',
       hasVision: 'Has Vision',
       hasMajorIssues: 'Major Issues',
       commonIssue: 'Common Issue',

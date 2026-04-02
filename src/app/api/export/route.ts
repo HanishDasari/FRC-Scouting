@@ -17,28 +17,34 @@ export async function GET() {
     }
 
     const headers = [
-      'ID', 'Status', 'Scouter', 'Team #', 'Match #',
-      'Strategy', 'Drive Train', 'Weight', 'Scoring Range',
-      'Storage', 'Outtake', 'Driver Exp', 'Auto Description',
-      'Auto Positions', 'Auto Accuracy', 'Hang', 'Shooting Accuracy',
-      'Cycle Time', 'Intake', 'Avg Fuel', 'Vision', 'Major Issues', 'Common Issue',
-      'Timestamp'
+      'ID', 'Status', 'Scouter', 'Team Number', 'Qual Number',
+      'Strategy', 'Drivetrain', 'Robot Weight', 'Scoring Range',
+      'Storage Capacity', 'Outtake Type', 'Driver Experience', 'Auto Description',
+      'Auto Start Pos', 'Auto Accuracy', 'Hanging (Yes/No)', 'Shooting Accuracy',
+      'Cycle Time', 'Intake Type', 'Avg Fuel Scored', 'Has Vision', 'Major Issues', 'Common Issue',
+      'Submission Time'
     ];
 
-    const rows = rawReports.map((r: any) => [
-      r.id, r.status, r.scouterName, r.teamNumber, r.matchNumber,
-      `"${(r.gameStrategy || '').replace(/"/g, '""')}"`,
-      r.drivetrainType, r.robotWeight, r.scoringRange,
-      r.storageCapacity, r.outtakeType, r.driverExperience,
-      `"${(r.autoDescription || '').replace(/"/g, '""')}"`,
-      r.autoStartPositions, r.autoAccuracy, r.hasHang, r.shootingAccuracy,
-      r.cycleTime, r.intakeType, r.avgFuelScored, r.hasVision,
-      r.hasMajorIssues,
-      `"${(r.commonIssue || '').replace(/"/g, '""')}"`,
-      r.createdAt
-    ]);
+    const rows = rawReports.map((r: any) => {
+      const row = [
+        r.id, r.status, r.scouterName, r.teamNumber, r.matchNumber,
+        `"${(r.gameStrategy || '').replace(/"/g, '""')}"`,
+        r.drivetrainType, r.robotWeight, r.scoringRange,
+        r.storageCapacity, r.outtakeType, r.driverExperience,
+        `"${(r.autoDescription || '').replace(/"/g, '""')}"`,
+        r.autoStartPositions, r.autoAccuracy, 
+        r.hasHang ? 'Yes' : 'No', 
+        r.shootingAccuracy,
+        r.cycleTime, r.intakeType, r.avgFuelScored, 
+        r.hasVision ? 'Yes' : 'No',
+        r.hasMajorIssues ? 'Yes' : 'No',
+        `"${(r.commonIssue || '').replace(/"/g, '""')}"`,
+        r.createdAt
+      ];
+      return row.join(',');
+    });
 
-    const csvContent = [headers.join(','), ...rows.map((row: any[]) => row.join(','))].join('\n');
+    const csvContent = [headers.join(','), ...rows].join('\n');
 
     return new NextResponse(csvContent, {
       headers: {
