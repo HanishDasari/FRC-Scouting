@@ -144,15 +144,15 @@ export default function Dashboard() {
 
   // Delete functionality moved to Admin Portal
 
-  const getTeamStatus = (teamNum: number) => {
-    const r = reports.filter(r => r.teamNumber === teamNum);
+  const getTeamStatus = (teamNum: number, matchNumber: number) => {
+    const r = reports.filter(r => Number(r.teamNumber) === teamNum && Number(r.matchNumber) === matchNumber);
     if (r.length === 0) return 'NOT_SCOUTED';
     if (r.some(r => r.status === 'COMPLETED')) return 'COMPLETED';
     return 'IN_PROGRESS';
   };
 
-  const getReportId = (teamNum: number) =>
-    reports.find(r => r.teamNumber === teamNum)?.id || null;
+  const getReportId = (teamNum: number, matchNumber: number) =>
+    reports.find(r => Number(r.teamNumber) === teamNum && Number(r.matchNumber) === matchNumber)?.id || null;
 
   const deleteDraft = async (e: React.MouseEvent, id: string) => {
     e.preventDefault(); e.stopPropagation();
@@ -169,8 +169,8 @@ export default function Dashboard() {
   };
 
   const StatusCard = ({ teamNum, isRed, matchNumber }: { teamNum: number; isRed: boolean; matchNumber: number }) => {
-    const status = getTeamStatus(teamNum);
-    const reportId = getReportId(teamNum);
+    const status = getTeamStatus(teamNum, matchNumber);
+    const reportId = getReportId(teamNum, matchNumber);
     const colors = {
       NOT_SCOUTED: { bg: 'rgba(225,29,72,0.15)', border: 'rgba(225,29,72,0.4)', accent: '#e11d48', label: 'Awaiting' },
       IN_PROGRESS:  { bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.4)', accent: '#3b82f6', label: 'Scouting' },
