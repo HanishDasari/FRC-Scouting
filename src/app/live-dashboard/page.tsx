@@ -36,27 +36,38 @@ export default function LiveDashboardPage() {
       autonScored: 'Auton Scored',
       scored: 'Teleop Scored',
       hasHang: 'Hang Successfully',
-      hasMajorIssues: 'Major Issues',
-      defenseRating: 'Defense (%)',
-      notes: 'Strategy Notes',
-      timestamp: 'Export Time'
+      comments: 'Comments',
+      createdAt: 'Submission Time'
     };
 
-    // Sort reports by match number then team number
-    const sortedReports = [...data.reports].sort((a, b) => {
-      if (Number(a.matchNumber) !== Number(b.matchNumber)) return Number(a.matchNumber) - Number(b.matchNumber);
-      return Number(a.teamNumber) - Number(b.teamNumber);
-    });
+    const headers = Object.values(columnMap).join(',');
+    const rows: string[] = [];
 
-    const headers = Object.keys(columnMap).join(',');
-    const rows = sortedReports.map(r => {
-      return Object.keys(columnMap).map(key => {
-        let val = r[key];
-        if (typeof val === 'boolean') val = val ? 'Yes' : 'No';
-        if (val === undefined || val === null) val = '';
-        return `"${String(val).replace(/"/g, '""')}"`;
-      }).join(',');
-    });
+    // Sort matches by match number
+    const sortedMatches = [...data.matches].sort((a, b) => Number(a.matchNumber) - Number(b.matchNumber));
+
+    for (const match of sortedMatches) {
+      for (const teamNum of match.teams) {
+        // Find the report for this team in this match
+        const report = data.reports.find(r => Number(r.teamNumber) === Number(teamNum) && Number(r.matchNumber) === Number(match.matchNumber));
+
+        const row = Object.keys(columnMap).map(key => {
+          let val;
+          if (report) {
+            val = report[key];
+          } else {
+            if (key === 'matchNumber') val = match.matchNumber;
+            else if (key === 'teamNumber') val = teamNum;
+            else val = '';
+          }
+          
+          if (typeof val === 'boolean') val = val ? 'Yes' : 'No';
+          if (val === undefined || val === null) val = '';
+          return `"${String(val).replace(/"/g, '""')}"`;
+        }).join(',');
+        rows.push(row);
+      }
+    }
 
     const csv = [headers, ...rows].join('\n');
     const link = Object.assign(document.createElement('a'), {

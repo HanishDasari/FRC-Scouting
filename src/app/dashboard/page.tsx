@@ -13,11 +13,23 @@ type ScoutReport = {
   scouterName: string;
   gameStrategy: string;
   drivetrainType: string;
+  robotWeight: string;
+  scoringRange: string;
+  storageCapacity: string;
+  outtakeType: string;
+  driverExperience: string;
+  autoDescription: string;
+  autoStartPositions: string;
+  autoAccuracy: string;
   hasHang: boolean;
+  shootingAccuracy: string;
+  cycleTime: string;
+  intakeType: string;
+  avgFuelScored: string;
   hasVision: boolean;
   hasMajorIssues: boolean;
-  shootingAccuracy: string;
-  autoAccuracy: string;
+  commonIssue: string;
+  createdAt?: string;
 };
 
 type MatchConfig = {
@@ -68,32 +80,58 @@ export default function Dashboard() {
     const columnMap: Record<string, string> = {
       matchNumber: 'Qual Number',
       teamNumber: 'Team Number',
+      status: 'Status',
       scouterName: 'Scouter',
       gameStrategy: 'Strategy',
       drivetrainType: 'Drivetrain',
+      robotWeight: 'Robot Weight',
+      scoringRange: 'Scoring Range',
+      storageCapacity: 'Storage Capacity',
+      outtakeType: 'Outtake Type',
+      intakeType: 'Intake Type',
+      driverExperience: 'Driver Experience',
+      autoDescription: 'Auto Description',
+      autoStartPositions: 'Auto Start Pos',
+      autoAccuracy: 'Auto Accuracy',
+      shootingAccuracy: 'Shooting Accuracy',
+      cycleTime: 'Cycle Time',
+      avgFuelScored: 'Avg Fuel Scored',
       hasHang: 'Has Hang',
       hasVision: 'Has Vision',
       hasMajorIssues: 'Major Issues',
-      shootingAccuracy: 'Shooting Acc',
-      autoAccuracy: 'Auto Acc',
-      timestamp: 'Export Time'
+      commonIssue: 'Common Issue',
+      createdAt: 'Submission Time'
     };
 
-    // Sort reports by match number then team number
-    const sortedReports = [...reports].sort((a, b) => {
-      if (Number(a.matchNumber) !== Number(b.matchNumber)) return Number(a.matchNumber) - Number(b.matchNumber);
-      return Number(a.teamNumber) - Number(b.teamNumber);
-    });
+    const headers = Object.values(columnMap).join(',');
+    const rows: string[] = [];
 
-    const headers = Object.keys(columnMap).join(',');
-    const rows = sortedReports.map(r => {
-      return Object.keys(columnMap).map(key => {
-        let val = (r as any)[key];
-        if (typeof val === 'boolean') val = val ? 'Yes' : 'No';
-        if (val === undefined || val === null) val = '';
-        return `"${String(val).replace(/"/g, '""')}"`;
-      }).join(',');
-    });
+    // Sort matches by match number
+    const sortedMatches = [...matches].sort((a, b) => Number(a.matchNumber) - Number(b.matchNumber));
+
+    for (const match of sortedMatches) {
+      for (const teamNum of match.teams) {
+        // Find the most recent report for this team in this match
+        const report = reports.find(r => Number(r.teamNumber) === Number(teamNum) && Number(r.matchNumber) === Number(match.matchNumber));
+
+        const row = Object.keys(columnMap).map(key => {
+          let val;
+          if (report) {
+            val = (report as any)[key];
+          } else {
+            if (key === 'matchNumber') val = match.matchNumber;
+            else if (key === 'teamNumber') val = teamNum;
+            else if (key === 'status') val = 'NOT_STARTED';
+            else val = '';
+          }
+          
+          if (typeof val === 'boolean') val = val ? 'Yes' : 'No';
+          if (val === undefined || val === null) val = '';
+          return `"${String(val).replace(/"/g, '""')}"`;
+        }).join(',');
+        rows.push(row);
+      }
+    }
 
     const csv = [headers, ...rows].join('\n');
     const link = Object.assign(document.createElement('a'), {
