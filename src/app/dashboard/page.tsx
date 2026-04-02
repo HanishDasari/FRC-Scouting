@@ -59,49 +59,7 @@ export default function Dashboard() {
   }, [fetchData]);
 
   const downloadData = () => {
-    if (!reports || reports.length === 0) { 
-      showModal({ type: 'warning', title: 'No Data', message: 'No data available to download.' }); 
-      return; 
-    }
-
-    // Define column mapping for human-readable headers
-    const columnMap: Record<string, string> = {
-      matchNumber: 'Qual Number',
-      teamNumber: 'Team Number',
-      scouterName: 'Scouter',
-      gameStrategy: 'Strategy',
-      drivetrainType: 'Drivetrain',
-      hasHang: 'Has Hang',
-      hasVision: 'Has Vision',
-      hasMajorIssues: 'Major Issues',
-      shootingAccuracy: 'Shooting Acc',
-      autoAccuracy: 'Auto Acc',
-      timestamp: 'Export Time'
-    };
-
-    // Sort reports by match number then team number
-    const sortedReports = [...reports].sort((a, b) => {
-      if (Number(a.matchNumber) !== Number(b.matchNumber)) return Number(a.matchNumber) - Number(b.matchNumber);
-      return Number(a.teamNumber) - Number(b.teamNumber);
-    });
-
-    const headers = Object.keys(columnMap).join(',');
-    const rows = sortedReports.map(r => {
-      return Object.keys(columnMap).map(key => {
-        let val = (r as any)[key];
-        if (typeof val === 'boolean') val = val ? 'Yes' : 'No';
-        if (val === undefined || val === null) val = '';
-        return `"${String(val).replace(/"/g, '""')}"`;
-      }).join(',');
-    });
-
-    const csv = [headers, ...rows].join('\n');
-    const link = Object.assign(document.createElement('a'), {
-      href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
-      download: `6905_prescouting_${new Date().toISOString().split('T')[0]}.csv`,
-      style: 'display:none'
-    });
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    window.location.href = '/api/export?type=prescout';
   };
 
   // Delete functionality moved to Admin Portal
@@ -216,19 +174,17 @@ export default function Dashboard() {
             <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#22c55e' }} />
             <span className="text-xs font-black uppercase tracking-widest" style={{ color: '#22c55e' }}>Live · Syncing every 5s</span>
           </div>
-          <input type="text" placeholder="Search saved teams..." value={search} onChange={e => setSearch(e.target.value)} className="p-3 rounded-xl outline-none text-white text-sm font-bold w-full sm:w-64 transition-all" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }} onFocus={e => e.target.style.borderColor='#e11d48'} onBlur={e => e.target.style.borderColor='#1e1e2e'} />
+          <div className="relative group w-full sm:w-64">
+            <input type="text" placeholder="Search team or match..." value={search} onChange={e => setSearch(e.target.value)}
+              className="w-full p-3 pl-10 rounded-xl outline-none text-white text-sm font-bold transition-all"
+              style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}
+              onFocus={e => e.target.style.borderColor='#e11d48'}
+              onBlur={e => e.target.style.borderColor='#1e1e2e'} />
+            <Users size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors" />
+          </div>
         </div>
 
-        {search ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {matches.flatMap(m => m.teams.map((t, index) => ({ teamNum: t, matchNumber: m.matchNumber, isRed: index < 3 })))
-              .filter(t => String(t.teamNum).includes(search))
-              .map((r, i) => (
-              <StatusCard key={`${r.teamNum}-${r.matchNumber}-${i}`} teamNum={r.teamNum} matchNumber={r.matchNumber} isRed={r.isRed} />
-            ))}
-            {matches.flatMap(m => m.teams).filter(t => String(t).includes(search)).length === 0 && <div className="text-[#475569] font-bold uppercase text-xs tracking-widest col-span-full">No results found.</div>}
-          </div>
-        ) : matches.length === 0 ? (
+        {matches.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 rounded-3xl" style={{ border: '2px dashed #1e1e2e' }}>
             <Info className="mb-6" size={80} style={{ color: '#1e1e2e' }} strokeWidth={1} />
             <h2 className="text-3xl font-black uppercase tracking-tighter mb-3 text-white">No Active Records</h2>
@@ -244,7 +200,12 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="flex flex-col gap-24">
-            {matches.map(match => (
+            {matches.filter(match => {
+              if (!search) return true;
+              const s = search.toLowerCase().replace('match ', '').replace('team ', '').trim();
+              return match.matchNumber.toString().includes(s) || 
+                     match.teams.some(t => t.toString().includes(s));
+            }).map(match => (
               <section key={match.matchNumber} className="relative">
                 {/* Ghost number */}
                 <div className="absolute -top-16 -left-6 text-[16rem] font-black italic leading-none select-none pointer-events-none" style={{ color: 'rgba(225,29,72,0.04)' }}>
@@ -281,6 +242,16 @@ export default function Dashboard() {
                 </div>
               </section>
             ))}
+            {matches.length > 0 && matches.filter(match => {
+              if (!search) return true;
+              const s = search.toLowerCase().replace('match ', '').replace('team ', '').trim();
+              return match.matchNumber.toString().includes(s) || 
+                     match.teams.some(t => t.toString().includes(s));
+            }).length === 0 && (
+              <div className="text-center py-20 font-black uppercase tracking-[0.3em] text-muted text-xs">
+                No matching results for "{search}"
+              </div>
+            )}
           </div>
         )}
 
