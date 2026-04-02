@@ -17,7 +17,7 @@ export async function GET() {
     }
 
     const headers = [
-      'ID', 'Status', 'Scouter', 'Team Number',
+      'ID', 'Status', 'Scouter', 'Team Number', 'Qual Number',
       'Strategy', 'Drivetrain', 'Robot Weight', 'Scoring Range',
       'Storage Capacity', 'Outtake Type', 'Driver Experience', 'Auto Description',
       'Auto Start Pos', 'Auto Accuracy', 'Hanging (Yes/No)', 'Shooting Accuracy',
@@ -25,29 +25,41 @@ export async function GET() {
       'Submission Time'
     ];
 
-    // Deduplicate by teamNumber, keeping the first (newest) one found
-    const seenTeams = new Set();
-    const uniqueReports = rawReports.filter((r: any) => {
-      if (seenTeams.has(r.teamNumber)) return false;
-      seenTeams.add(r.teamNumber);
-      return true;
-    });
+    // Helper to find value regardless of casing
+    const getVal = (report: any, key: string) => {
+      if (!report) return undefined;
+      if (report[key] !== undefined) return report[key];
+      const lowerKey = key.toLowerCase();
+      const realKey = Object.keys(report).find(k => k.toLowerCase() === lowerKey);
+      return realKey ? report[realKey] : undefined;
+    };
 
-    const rows = uniqueReports.map((r: any) => {
+    const rows = rawReports.map((r: any) => {
       const row = [
-        r.id, r.status, r.scouterName, r.teamNumber,
-        `"${(r.gameStrategy || '').replace(/"/g, '""')}"`,
-        r.drivetrainType, r.robotWeight, r.scoringRange,
-        r.storageCapacity, r.outtakeType, r.driverExperience,
-        `"${(r.autoDescription || '').replace(/"/g, '""')}"`,
-        r.autoStartPositions, r.autoAccuracy, 
-        r.hasHang ? 'Yes' : 'No', 
-        r.shootingAccuracy,
-        r.cycleTime, r.intakeType, r.avgFuelScored, 
-        r.hasVision ? 'Yes' : 'No',
-        r.hasMajorIssues ? 'Yes' : 'No',
-        `"${(r.commonIssue || '').replace(/"/g, '""')}"`,
-        r.createdAt
+        getVal(r, 'id'), 
+        getVal(r, 'status'), 
+        getVal(r, 'scouterName'), 
+        getVal(r, 'teamNumber'), 
+        getVal(r, 'matchNumber'),
+        `"${(getVal(r, 'gameStrategy') || '').replace(/"/g, '""')}"`,
+        getVal(r, 'drivetrainType'), 
+        getVal(r, 'robotWeight'), 
+        getVal(r, 'scoringRange'),
+        getVal(r, 'storageCapacity'), 
+        getVal(r, 'outtakeType'), 
+        getVal(r, 'driverExperience'),
+        `"${(getVal(r, 'autoDescription') || '').replace(/"/g, '""')}"`,
+        getVal(r, 'autoStartPositions'), 
+        getVal(r, 'autoAccuracy'), 
+        getVal(r, 'hasHang') ? 'Yes' : 'No', 
+        getVal(r, 'shootingAccuracy'),
+        getVal(r, 'cycleTime'), 
+        getVal(r, 'intakeType'), 
+        getVal(r, 'avgFuelScored'), 
+        getVal(r, 'hasVision') ? 'Yes' : 'No',
+        getVal(r, 'hasMajorIssues') ? 'Yes' : 'No',
+        `"${(getVal(r, 'commonIssue') || '').replace(/"/g, '""')}"`,
+        getVal(r, 'createdAt')
       ];
       return row.join(',');
     });

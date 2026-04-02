@@ -76,8 +76,9 @@ export default function Dashboard() {
       return; 
     }
 
-    // Define column mapping for human-readable headers (Team-Centric)
+    // Define column mapping for human-readable headers
     const columnMap: Record<string, string> = {
+      matchNumber: 'Qual Number',
       teamNumber: 'Team Number',
       status: 'Status',
       scouterName: 'Scouter',
@@ -105,19 +106,33 @@ export default function Dashboard() {
     const headers = Object.values(columnMap).join(',');
     const rows: string[] = [];
 
-    // Get a unique list of all teams in the matches roster
-    const allTeams = Array.from(new Set(matches.flatMap(m => m.teams))).sort((a, b) => a - b);
+    // Sort matches by match number
+    const sortedMatches = [...matches].sort((a, b) => Number(a.matchNumber) - Number(b.matchNumber));
 
-    for (const teamNum of allTeams) {
-        // Find the most recent report for this team (across all matches)
-        const report = reports.find(r => Number(r.teamNumber) === teamNum);
+    // Helper to find reports and handle potential case-insensitivity in keys (Postgres/SQLite)
+    const getReportVal = (report: any, key: string) => {
+      if (!report) return undefined;
+      if (report[key] !== undefined) return report[key];
+      const lowerKey = key.toLowerCase();
+      const realKey = Object.keys(report).find(k => k.toLowerCase() === lowerKey);
+      return realKey ? report[realKey] : undefined;
+    };
+
+    for (const match of sortedMatches) {
+      for (const teamNum of match.teams) {
+        // Find the MOST RECENT report for this team, regardless of match (SYNCED)
+        const report = reports.find(r => {
+          const rTeam = getReportVal(r, 'teamNumber');
+          return rTeam !== undefined && Number(rTeam) === Number(teamNum);
+        });
 
         const row = Object.keys(columnMap).map(key => {
           let val;
           if (report) {
-            val = (report as any)[key];
+            val = getReportVal(report, key);
           } else {
-            if (key === 'teamNumber') val = teamNum;
+            if (key === 'matchNumber') val = match.matchNumber;
+            else if (key === 'teamNumber') val = teamNum;
             else if (key === 'status') val = 'NOT_STARTED';
             else val = '';
           }
@@ -127,6 +142,7 @@ export default function Dashboard() {
           return `"${String(val).replace(/"/g, '""')}"`;
         }).join(',');
         rows.push(row);
+      }
     }
 
     const csv = [headers, ...rows].join('\n');
