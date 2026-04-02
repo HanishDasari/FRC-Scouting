@@ -14,12 +14,18 @@ export default function LiveDashboardPage() {
 
   const fetchData = useCallback(() => {
     fetch('/api/live-scout')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      })
       .then(d => {
         setData(d);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('Fetch error:', err);
+        setLoading(false);
+      });
   }, []);
 
   const downloadData = () => {

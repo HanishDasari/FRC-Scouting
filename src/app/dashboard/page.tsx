@@ -54,13 +54,19 @@ export default function Dashboard() {
 
   const fetchData = useCallback(() => {
     fetch('/api/scout')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`API error: ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         if (data.reports) setReports(data.reports);
         if (data.matches) setMatches(data.matches);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('Fetch error:', err);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
