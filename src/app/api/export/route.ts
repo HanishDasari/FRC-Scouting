@@ -17,7 +17,7 @@ export async function GET() {
     }
 
     const headers = [
-      'ID', 'Status', 'Scouter', 'Team Number', 'Qual Number',
+      'ID', 'Status', 'Scouter', 'Team Number',
       'Strategy', 'Drivetrain', 'Robot Weight', 'Scoring Range',
       'Storage Capacity', 'Outtake Type', 'Driver Experience', 'Auto Description',
       'Auto Start Pos', 'Auto Accuracy', 'Hanging (Yes/No)', 'Shooting Accuracy',
@@ -25,9 +25,17 @@ export async function GET() {
       'Submission Time'
     ];
 
-    const rows = rawReports.map((r: any) => {
+    // Deduplicate by teamNumber, keeping the first (newest) one found
+    const seenTeams = new Set();
+    const uniqueReports = rawReports.filter((r: any) => {
+      if (seenTeams.has(r.teamNumber)) return false;
+      seenTeams.add(r.teamNumber);
+      return true;
+    });
+
+    const rows = uniqueReports.map((r: any) => {
       const row = [
-        r.id, r.status, r.scouterName, r.teamNumber, r.matchNumber,
+        r.id, r.status, r.scouterName, r.teamNumber,
         `"${(r.gameStrategy || '').replace(/"/g, '""')}"`,
         r.drivetrainType, r.robotWeight, r.scoringRange,
         r.storageCapacity, r.outtakeType, r.driverExperience,

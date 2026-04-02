@@ -76,9 +76,8 @@ export default function Dashboard() {
       return; 
     }
 
-    // Define column mapping for human-readable headers
+    // Define column mapping for human-readable headers (Team-Centric)
     const columnMap: Record<string, string> = {
-      matchNumber: 'Qual Number',
       teamNumber: 'Team Number',
       status: 'Status',
       scouterName: 'Scouter',
@@ -106,21 +105,19 @@ export default function Dashboard() {
     const headers = Object.values(columnMap).join(',');
     const rows: string[] = [];
 
-    // Sort matches by match number
-    const sortedMatches = [...matches].sort((a, b) => Number(a.matchNumber) - Number(b.matchNumber));
+    // Get a unique list of all teams in the matches roster
+    const allTeams = Array.from(new Set(matches.flatMap(m => m.teams))).sort((a, b) => a - b);
 
-    for (const match of sortedMatches) {
-      for (const teamNum of match.teams) {
-        // Find the most recent report for this team in this match
-        const report = reports.find(r => Number(r.teamNumber) === Number(teamNum) && Number(r.matchNumber) === Number(match.matchNumber));
+    for (const teamNum of allTeams) {
+        // Find the most recent report for this team (across all matches)
+        const report = reports.find(r => Number(r.teamNumber) === teamNum);
 
         const row = Object.keys(columnMap).map(key => {
           let val;
           if (report) {
             val = (report as any)[key];
           } else {
-            if (key === 'matchNumber') val = match.matchNumber;
-            else if (key === 'teamNumber') val = teamNum;
+            if (key === 'teamNumber') val = teamNum;
             else if (key === 'status') val = 'NOT_STARTED';
             else val = '';
           }
@@ -130,7 +127,6 @@ export default function Dashboard() {
           return `"${String(val).replace(/"/g, '""')}"`;
         }).join(',');
         rows.push(row);
-      }
     }
 
     const csv = [headers, ...rows].join('\n');
@@ -144,15 +140,15 @@ export default function Dashboard() {
 
   // Delete functionality moved to Admin Portal
 
-  const getTeamStatus = (teamNum: number, matchNumber: number) => {
-    const r = reports.filter(r => Number(r.teamNumber) === teamNum && Number(r.matchNumber) === matchNumber);
+  const getTeamStatus = (teamNum: number) => {
+    const r = reports.filter(r => Number(r.teamNumber) === teamNum);
     if (r.length === 0) return 'NOT_SCOUTED';
     if (r.some(r => r.status === 'COMPLETED')) return 'COMPLETED';
     return 'IN_PROGRESS';
   };
 
-  const getReportId = (teamNum: number, matchNumber: number) =>
-    reports.find(r => Number(r.teamNumber) === teamNum && Number(r.matchNumber) === matchNumber)?.id || null;
+  const getReportId = (teamNum: number) =>
+    reports.find(r => Number(r.teamNumber) === teamNum)?.id || null;
 
   const deleteDraft = async (e: React.MouseEvent, id: string) => {
     e.preventDefault(); e.stopPropagation();
@@ -169,8 +165,8 @@ export default function Dashboard() {
   };
 
   const StatusCard = ({ teamNum, isRed, matchNumber }: { teamNum: number; isRed: boolean; matchNumber: number }) => {
-    const status = getTeamStatus(teamNum, matchNumber);
-    const reportId = getReportId(teamNum, matchNumber);
+    const status = getTeamStatus(teamNum);
+    const reportId = getReportId(teamNum);
     const colors = {
       NOT_SCOUTED: { bg: 'rgba(225,29,72,0.15)', border: 'rgba(225,29,72,0.4)', accent: '#e11d48', label: 'Awaiting' },
       IN_PROGRESS:  { bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.4)', accent: '#3b82f6', label: 'Scouting' },
