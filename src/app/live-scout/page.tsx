@@ -164,7 +164,7 @@ function LiveScoutForm() {
             <ChevronLeft size={26} color="#f1f5f9" />
           </button>
           <Activity className="ml-2" color="#f59e0b" size={28} />
-          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">Real-Time Scout</h1>
+          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">Real Time Match Scouting</h1>
         </div>
         {syncStatus && (
            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: '#13131a', border: '1px solid #1e1e2e' }}>

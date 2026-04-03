@@ -11,6 +11,7 @@ export default function LiveDashboardPage() {
   const { showModal } = useModal();
   const [data, setData] = useState<{ matches: any[], reports: any[] }>({ matches: [], reports: [] });
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
   const fetchData = useCallback(() => {
     fetch('/api/live-scout')
@@ -119,8 +120,30 @@ export default function LiveDashboardPage() {
         </button>
       </div>
 
+      {/* Search Bar */}
+      <div className="mb-10">
+        <div className="relative group max-w-md mx-auto lg:mx-0">
+          <input 
+            type="text" 
+            placeholder="Search team or match..." 
+            value={search} 
+            onChange={e => setSearch(e.target.value)}
+            className="w-full p-4 pl-12 rounded-3xl outline-none text-white font-bold transition-all" 
+            style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }} 
+            onFocus={e => e.target.style.borderColor='#06b6d4'} 
+            onBlur={e => e.target.style.borderColor='#1e1e2e'} 
+          />
+          <Users size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-[#06b6d4] transition-colors" />
+        </div>
+      </div>
+
       <div className="space-y-8">
-        {data.matches.map((match: any) => {
+        {data.matches.filter((match: any) => {
+          if (!search) return true;
+          const s = search.toLowerCase().replace('match ', '').replace('team ', '').trim();
+          return match.matchNumber.toString().includes(s) || 
+                 match.teams.some((t: any) => t.toString().includes(s));
+        }).map((match: any) => {
           const mReports = data.reports.filter(r => Number(r.matchNumber) === Number(match.matchNumber));
           const matchNumStr = String(match.matchNumber);
           const fontSize = matchNumStr.length > 3 ? 'text-4xl lg:text-5xl' : matchNumStr.length > 2 ? 'text-5xl lg:text-6xl' : 'text-6xl lg:text-7xl';
@@ -200,6 +223,16 @@ export default function LiveDashboardPage() {
             </div>
           );
         })}
+        {data.matches.length > 0 && data.matches.filter((match: any) => {
+          if (!search) return true;
+          const s = search.toLowerCase().replace('match ', '').replace('team ', '').trim();
+          return match.matchNumber.toString().includes(s) || 
+                 match.teams.some((t: any) => t.toString().includes(s));
+        }).length === 0 && (
+          <div className="text-center py-20 font-black uppercase tracking-[0.3em] text-[#475569] text-xs transition-all animate-in fade-in zoom-in duration-500">
+            No matching results for "{search}"
+          </div>
+        )}
         {data.matches.length === 0 && (
           <div className="text-center p-10 font-bold" style={{ color: '#64748b' }}>No live matches initialized.</div>
         )}
