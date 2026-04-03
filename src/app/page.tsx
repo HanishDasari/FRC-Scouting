@@ -33,7 +33,7 @@ export default function Home() {
       <div className="relative z-10 mb-12">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="w-12 h-1" style={{ background: 'linear-gradient(90deg, #e11d48, transparent)' }} />
-          <span className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#e11d48' }}>FRC Albany 2026</span>
+          <span className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#e11d48' }}>FRC</span>
           <div className="w-12 h-1" style={{ background: 'linear-gradient(90deg, transparent, #e11d48)' }} />
         </div>
         <h1 className="text-6xl sm:text-8xl font-black uppercase italic tracking-tighter mb-3 leading-none">
@@ -68,7 +68,7 @@ export default function Home() {
               <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(225,29,72,0.15)' }}>
                 <Users size={36} style={{ color: '#e11d48' }} />
               </div>
-              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Prescout Qual Setup</span>
+              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Prescout Setup</span>
               <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Configure 6-Team Roster</span>
             </Link>
 
@@ -86,7 +86,7 @@ export default function Home() {
               <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(59,130,246,0.12)' }}>
                 <LayoutDashboard size={36} style={{ color: '#3b82f6' }} />
               </div>
-              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Prescout Status</span>
+              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Prescout Dashboard</span>
               <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Live Alliance Tracking</span>
             </Link>
           </div>
@@ -113,7 +113,7 @@ export default function Home() {
               <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(245,158,11,0.15)' }}>
                 <Users size={36} style={{ color: '#f59e0b' }} />
               </div>
-              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Live Qual Setup</span>
+              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Live Scouting Setup</span>
               <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>Configure Timed Quals</span>
             </Link>
 
@@ -131,7 +131,7 @@ export default function Home() {
               <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(6,182,212,0.12)' }}>
                 <LineChart size={36} style={{ color: '#06b6d4' }} />
               </div>
-              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Real-Time Status</span>
+              <span className="text-xl font-black uppercase tracking-widest text-white mb-1">Live Scouting Dashboard</span>
               <span className="text-xs font-bold uppercase tracking-wider text-center" style={{ color: '#64748b' }}>Real-Time Qual Leaderboard</span>
             </Link>
           </div>

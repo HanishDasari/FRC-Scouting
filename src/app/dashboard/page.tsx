@@ -180,7 +180,7 @@ export default function Dashboard() {
     });
   };
 
-  const StatusCard = ({ teamNum, isRed, matchNumber }: { teamNum: number; isRed: boolean; matchNumber: number }) => {
+  const StatusCard = ({ teamNum, isRed, matchNumber, isHighlighted }: { teamNum: number; isRed: boolean; matchNumber: number; isHighlighted?: boolean }) => {
     const status = getTeamStatus(teamNum);
     const reportId = getReportId(teamNum);
     const colors = {
@@ -193,7 +193,11 @@ export default function Dashboard() {
       <div
         onClick={() => router.push(`/scout?team=${teamNum}&match=${matchNumber}${reportId ? `&id=${reportId}` : ''}`)}
         className="cursor-pointer group relative block p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 active:scale-95"
-        style={{ background: colors.bg, border: `1.5px solid ${colors.border}`, boxShadow: `0 0 20px ${colors.bg}` }}
+        style={{
+          background: isHighlighted ? 'rgba(234, 179, 8, 0.2)' : colors.bg,
+          border: isHighlighted ? '2px solid #eab308' : `1.5px solid ${colors.border}`,
+          boxShadow: isHighlighted ? '0 0 25px rgba(234, 179, 8, 0.4)' : `0 0 20px ${colors.bg}`
+        }}
       >
         {status === 'IN_PROGRESS' && reportId && (
           <button
@@ -269,70 +273,73 @@ export default function Dashboard() {
           <input type="text" placeholder="Search saved teams..." value={search} onChange={e => setSearch(e.target.value)} className="p-3 rounded-xl outline-none text-white text-sm font-bold w-full sm:w-64 transition-all" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }} onFocus={e => e.target.style.borderColor='#e11d48'} onBlur={e => e.target.style.borderColor='#1e1e2e'} />
         </div>
 
-        {search ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {matches.flatMap(m => m.teams.map((t, index) => ({ teamNum: t, matchNumber: m.matchNumber, isRed: index < 3 })))
-              .filter(t => String(t.teamNum).includes(search))
-              .map((r, i) => (
-              <StatusCard key={`${r.teamNum}-${r.matchNumber}-${i}`} teamNum={r.teamNum} matchNumber={r.matchNumber} isRed={r.isRed} />
-            ))}
-            {matches.flatMap(m => m.teams).filter(t => String(t).includes(search)).length === 0 && <div className="text-[#475569] font-bold uppercase text-xs tracking-widest col-span-full">No results found.</div>}
-          </div>
-        ) : matches.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 rounded-3xl" style={{ border: '2px dashed #1e1e2e' }}>
-            <Info className="mb-6" size={80} style={{ color: '#1e1e2e' }} strokeWidth={1} />
-            <h2 className="text-3xl font-black uppercase tracking-tighter mb-3 text-white">No Active Records</h2>
-            <p className="font-bold mb-8 max-w-xs text-center uppercase text-xs tracking-widest" style={{ color: '#475569' }}>
-              Initialize a qualification to begin prescouting.
-            </p>
-            <Link href="/setup"
-              className="px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-white transition-all active:scale-95"
-              style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', boxShadow: '0 10px 30px rgba(225,29,72,0.3)' }}
-            >
-              Setup Qual
-            </Link>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-24">
-            {matches.map(match => (
-              <section key={match.matchNumber} className="relative">
-                {/* Ghost number */}
-                <div className="absolute -top-16 -left-6 text-[16rem] font-black italic leading-none select-none pointer-events-none" style={{ color: 'rgba(225,29,72,0.04)' }}>
-                  {match.matchNumber < 10 ? `0${match.matchNumber}` : match.matchNumber}
-                </div>
+        {(() => {
+          const filteredMatches = search
+             ? matches.filter(m => m.teams.some(t => String(t).startsWith(search)))
+             : matches;
 
-                  <div className="flex justify-between items-center mb-10 relative z-10">
-                    <div className="flex items-center gap-4">
-                      <div className="px-6 py-3 rounded-2xl" style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', boxShadow: '0 8px 24px rgba(225,29,72,0.3)' }}>
-                        <span className="font-black text-2xl uppercase italic tracking-tight text-white">Qual {match.matchNumber}</span>
+          if (filteredMatches.length === 0) {
+            return search ? (
+              <div className="text-[#475569] font-bold uppercase text-xs tracking-widest text-center mt-20 col-span-full">No results found.</div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-32 rounded-3xl" style={{ border: '2px dashed #1e1e2e' }}>
+                <Info className="mb-6" size={80} style={{ color: '#1e1e2e' }} strokeWidth={1} />
+                <h2 className="text-3xl font-black uppercase tracking-tighter mb-3 text-white">No Active Records</h2>
+                <p className="font-bold mb-8 max-w-xs text-center uppercase text-xs tracking-widest" style={{ color: '#475569' }}>
+                  Initialize a qualification to begin prescouting.
+                </p>
+                <Link href="/setup"
+                  className="px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-white transition-all active:scale-95"
+                  style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', boxShadow: '0 10px 30px rgba(225,29,72,0.3)' }}
+                >
+                  Setup Qual
+                </Link>
+              </div>
+            );
+          }
+
+          return (
+            <div className="flex flex-col gap-24">
+              {filteredMatches.map(match => (
+                <section key={match.matchNumber} className="relative">
+                  {/* Ghost number */}
+                  <div className="absolute -top-16 -left-6 text-[16rem] font-black italic leading-none select-none pointer-events-none" style={{ color: 'rgba(225,29,72,0.04)' }}>
+                    {match.matchNumber < 10 ? `0${match.matchNumber}` : match.matchNumber}
+                  </div>
+
+                    <div className="flex justify-between items-center mb-10 relative z-10">
+                      <div className="flex items-center gap-4">
+                        <div className="px-6 py-3 rounded-2xl" style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', boxShadow: '0 8px 24px rgba(225,29,72,0.3)' }}>
+                          <span className="font-black text-2xl uppercase italic tracking-tight text-white">Qual {match.matchNumber}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 relative z-10">
+                    <div>
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-1.5 h-7 rounded-full" style={{ background: '#e11d48' }} />
+                        <h2 className="text-sm font-black uppercase tracking-[0.3em]" style={{ color: '#e11d48' }}>Primary Alliance</h2>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {match.teams.slice(0, 3).map((num, i) => <StatusCard key={`r-${num}-${i}`} teamNum={num} isRed={true} matchNumber={match.matchNumber} isHighlighted={Boolean(search) && String(num).startsWith(search)} />)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-1.5 h-7 rounded-full" style={{ background: '#3b82f6' }} />
+                        <h2 className="text-sm font-black uppercase tracking-[0.3em]" style={{ color: '#3b82f6' }}>Opposition Alliance</h2>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {match.teams.slice(3, 6).map((num, i) => <StatusCard key={`b-${num}-${i}`} teamNum={num} isRed={false} matchNumber={match.matchNumber} isHighlighted={Boolean(search) && String(num).startsWith(search)} />)}
                       </div>
                     </div>
                   </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 relative z-10">
-                  <div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-1.5 h-7 rounded-full" style={{ background: '#e11d48' }} />
-                      <h2 className="text-sm font-black uppercase tracking-[0.3em]" style={{ color: '#e11d48' }}>Primary Alliance</h2>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {match.teams.slice(0, 3).map((num, i) => <StatusCard key={`r-${num}-${i}`} teamNum={num} isRed={true} matchNumber={match.matchNumber} />)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-1.5 h-7 rounded-full" style={{ background: '#3b82f6' }} />
-                      <h2 className="text-sm font-black uppercase tracking-[0.3em]" style={{ color: '#3b82f6' }}>Opposition Alliance</h2>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {match.teams.slice(3, 6).map((num, i) => <StatusCard key={`b-${num}-${i}`} teamNum={num} isRed={false} matchNumber={match.matchNumber} />)}
-                    </div>
-                  </div>
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
+                </section>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* Footer legend */}
         <footer className="mt-32 pt-10 flex flex-col md:flex-row justify-between items-center gap-8 pb-16" style={{ borderTop: '1.5px solid #1e1e2e' }}>
