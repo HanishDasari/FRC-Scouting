@@ -97,7 +97,7 @@ export async function initDB() {
       teams TEXT
     );
     CREATE TABLE IF NOT EXISTS reports (
-      id TEXT PRIMARY KEY,
+      id VARCHAR(255) PRIMARY KEY,
       status TEXT,
       "scouterName" TEXT,
       "teamNumber" INTEGER,
@@ -123,7 +123,7 @@ export async function initDB() {
       "createdAt" TEXT
     );
     CREATE TABLE IF NOT EXISTS drafts (
-      id TEXT PRIMARY KEY,
+      id VARCHAR(255) PRIMARY KEY,
       status TEXT,
       "scouterName" TEXT,
       "teamNumber" INTEGER,
@@ -156,7 +156,7 @@ export async function initDB() {
       teams TEXT
     );
     CREATE TABLE IF NOT EXISTS live_reports (
-      id TEXT PRIMARY KEY,
+      id VARCHAR(255) PRIMARY KEY,
       "scouterName" TEXT,
       "teamNumber" INTEGER,
       "matchNumber" INTEGER,
