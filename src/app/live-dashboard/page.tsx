@@ -17,10 +17,17 @@ export default function LiveDashboardPage() {
     fetch('/api/live-scout')
       .then(r => r.json())
       .then(d => {
-        setData(d);
+        if (d && d.matches && d.reports) {
+          setData(d);
+        } else if (d.error) {
+          console.error('API Error:', d.error);
+        }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('Fetch error:', err);
+        setLoading(false);
+      });
   }, []);
 
   const downloadData = () => {

@@ -56,11 +56,18 @@ export default function Dashboard() {
     fetch('/api/scout')
       .then(res => res.json())
       .then(data => {
-        if (data.reports) setReports(data.reports);
-        if (data.matches) setMatches(data.matches);
+        if (data && !data.error) {
+          if (data.reports) setReports(data.reports);
+          if (data.matches) setMatches(data.matches);
+        } else if (data.error) {
+          console.error('API Error:', data.error);
+        }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('Fetch error:', err);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {

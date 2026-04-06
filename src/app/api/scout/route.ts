@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       const teams = body.teams.map((t: any) => t.toString()).join(',');
       await query(
         `INSERT INTO matches ("matchNumber", teams) VALUES ($1, $2)
-         ON CONFLICT ("matchNumber") DO UPDATE SET teams = $2`,
+         ON DUPLICATE KEY UPDATE teams = $2`,
         [matchNumber, teams]
       );
       return NextResponse.json({ success: true });
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
           "autoStartPositions", "autoAccuracy", "hasHang", "shootingAccuracy", "cycleTime", "intakeType",
           "avgFuelScored", "hasVision", "hasMajorIssues", "commonIssue", "updatedAt")
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
-        ON CONFLICT (id) DO UPDATE SET
+        ON DUPLICATE KEY UPDATE
           status=$2, "scouterName"=$3, "teamNumber"=$4, "matchNumber"=$5, "gameStrategy"=$6, "drivetrainType"=$7,
           "robotWeight"=$8, "scoringRange"=$9, "storageCapacity"=$10, "outtakeType"=$11, "driverExperience"=$12,
           "autoDescription"=$13, "autoStartPositions"=$14, "autoAccuracy"=$15, "hasHang"=$16, "shootingAccuracy"=$17,
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
           "autoStartPositions", "autoAccuracy", "hasHang", "shootingAccuracy", "cycleTime", "intakeType",
           "avgFuelScored", "hasVision", "hasMajorIssues", "commonIssue", "createdAt")
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
-        ON CONFLICT (id) DO UPDATE SET
+        ON DUPLICATE KEY UPDATE
           status=$2, "scouterName"=$3, "teamNumber"=$4, "matchNumber"=$5, "gameStrategy"=$6, "drivetrainType"=$7,
           "robotWeight"=$8, "scoringRange"=$9, "storageCapacity"=$10, "outtakeType"=$11, "driverExperience"=$12,
           "autoDescription"=$13, "autoStartPositions"=$14, "autoAccuracy"=$15, "hasHang"=$16, "shootingAccuracy"=$17,
@@ -149,13 +149,13 @@ export async function GET() {
       query('SELECT * FROM matches ORDER BY "matchNumber" ASC'),
     ]);
 
-    const matches = matchesRes.rows.map((row: any) => ({
-      matchNumber: row.matchNumber,
-      teams: row.teams.split(',').map((t: string) => parseInt(t, 10))
+    const matches = (matchesRes.rows || []).map((row: any) => ({
+      matchNumber: row.matchNumber ?? row.matchnumber,
+      teams: (row.teams || '').split(',').map((t: string) => parseInt(t, 10))
     }));
 
     return NextResponse.json({
-      reports: [...reportsRes.rows, ...draftsRes.rows],
+      reports: [...(reportsRes.rows || []), ...(draftsRes.rows || [])],
       matches
     });
   } catch (error) {

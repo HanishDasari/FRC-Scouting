@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       const teams = body.teams.map((t: any) => t.toString()).join(',');
       await query(
         `INSERT INTO live_matches ("matchNumber", "time", "qualRound", teams) VALUES ($1, $2, $3, $4)
-         ON CONFLICT ("matchNumber") DO UPDATE SET "time" = EXCLUDED."time", "qualRound" = EXCLUDED."qualRound", teams = EXCLUDED.teams`,
+         ON DUPLICATE KEY UPDATE "time" = $2, "qualRound" = $3, teams = $4`,
         [matchNumber, body.time || '', body.qualRound || '', teams]
       );
       return NextResponse.json({ success: true });
@@ -53,10 +53,10 @@ export async function POST(req: Request) {
       await query(`
         INSERT INTO live_reports (id, "scouterName", "teamNumber", "matchNumber", scored, "autonScored", "hasHang", comments, "createdAt")
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-        ON CONFLICT (id) DO UPDATE SET
-          "scouterName"=EXCLUDED."scouterName", "teamNumber"=EXCLUDED."teamNumber", "matchNumber"=EXCLUDED."matchNumber", 
-          scored=EXCLUDED.scored, "autonScored"=EXCLUDED."autonScored", "hasHang"=EXCLUDED."hasHang", 
-          comments=EXCLUDED.comments, "createdAt"=EXCLUDED."createdAt"`,
+        ON DUPLICATE KEY UPDATE
+          "scouterName"=$2, "teamNumber"=$3, "matchNumber"=$4, 
+          scored=$5, "autonScored"=$6, "hasHang"=$7, 
+          comments=$8, "createdAt"=$9`,
         [r.id, r.scouterName, r.teamNumber, r.matchNumber, r.scored, r.autonScored, r.hasHang, r.comments, new Date().toISOString()]
       );
 
@@ -104,15 +104,16 @@ export async function GET() {
       query('SELECT * FROM live_matches ORDER BY "matchNumber" ASC'),
     ]);
 
-    const matches = matchesRes.rows.map((row: any) => ({
-      matchNumber: row.matchNumber,
+    const reports = reportsRes.rows || [];
+    const matches = (matchesRes.rows || []).map((row: any) => ({
+      matchNumber: row.matchNumber ?? row.matchnumber,
       time: row.time,
-      qualRound: row.qualRound,
-      teams: row.teams?.split(',').map((t: string) => parseInt(t, 10)) || []
+      qualRound: row.qualRound ?? row.qualround,
+      teams: (row.teams || '')?.split(',').map((t: string) => parseInt(t, 10)) || []
     }));
 
     return NextResponse.json({
-      reports: reportsRes.rows,
+      reports,
       matches
     });
   } catch (error) {
