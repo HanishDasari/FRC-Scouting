@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import mysql from 'mysql2/promise';
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
@@ -13,29 +13,34 @@ if (isDev) {
   if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
   localDb = new Database(path.join(dataDir, 'scouting.db'));
 } else {
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+  // Use a more robust connection config for TiDB Cloud
+  pool = mysql.createPool({
+    uri: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: true
+    }
   });
 }
 
 export async function query(text: string, params: any[] = []) {
+  // Common placeholders: replace $1, $2 with ? for MySQL and SQLite
+  let sql = text.replace(/\$\d+/g, '?');
+  const queryParams = params.map(p => typeof p === 'boolean' ? (p ? 1 : 0) : p);
+
   if (isDev) {
-    let sqliteText = text.replace(/\$\d+/g, '?');
-    sqliteText = sqliteText.replace(/SERIAL PRIMARY KEY/g, 'INTEGER PRIMARY KEY AUTOINCREMENT');
+    sql = sql.replace(/SERIAL PRIMARY KEY/g, 'INTEGER PRIMARY KEY AUTOINCREMENT');
     
-    if (sqliteText.includes('CREATE TABLE')) {
-      localDb.exec(sqliteText);
+    if (sql.includes('CREATE TABLE')) {
+      localDb.exec(sql);
       return { rows: [] };
     }
 
-    const sqliteParams = params.map(p => typeof p === 'boolean' ? (p ? 1 : 0) : p);
-    const isSelect = sqliteText.trim().toUpperCase().startsWith('SELECT');
+    const isSelect = sql.trim().toUpperCase().startsWith('SELECT');
 
     try {
-      const stmt = localDb.prepare(sqliteText);
+      const stmt = localDb.prepare(sql);
       if (isSelect) {
-        const rows = stmt.all(...sqliteParams);
+        const rows = stmt.all(...queryParams);
         const boolFields = ['hasHang', 'hasVision', 'hasMajorIssues'];
         rows.forEach((row: any) => {
           boolFields.forEach(f => {
@@ -44,7 +49,7 @@ export async function query(text: string, params: any[] = []) {
         });
         return { rows };
       } else {
-        const info = stmt.run(...sqliteParams);
+        const info = stmt.run(...queryParams);
         return { rows: [], rowCount: info.changes };
       }
     } catch (err) {
@@ -52,17 +57,40 @@ export async function query(text: string, params: any[] = []) {
       throw err;
     }
   } else {
-    const client = await pool.connect();
     try {
-      return await client.query(text, params);
-    } finally {
-      client.release();
+      sql = sql.replace(/SERIAL PRIMARY KEY/g, 'INT AUTO_INCREMENT PRIMARY KEY');
+      // MySQL uses backticks instead of double quotes for identifiers
+      sql = sql.replace(/"([^"]+)"/g, '`$1`');
+      
+      const [rows, fields] = await pool.query(sql, queryParams);
+      
+      // Handle the case where initDB might return nothing or multiple results
+      const results = Array.isArray(rows) ? rows : [rows];
+      
+      // Map Boolean-like TINYINTs back to actual booleans if needed
+      if (Array.isArray(results)) {
+        const boolFields = ['hasHang', 'hasVision', 'hasMajorIssues'];
+        results.forEach((row: any) => {
+          if (row && typeof row === 'object') {
+            boolFields.forEach(f => {
+              if (row[f] !== undefined) row[f] = !!row[f];
+            });
+          }
+        });
+      }
+
+      return { rows: results };
+    } catch (err) {
+      console.error('MySQL Error:', err);
+      throw err;
     }
   }
 }
 
 export async function initDB() {
-  await query(`
+  // Split multiple queries for MySQL if needed, or wrap in a transaction
+  // mysql2 pool.query can't do multiple statements by default unless enabled
+  const queries = `
     CREATE TABLE IF NOT EXISTS matches (
       id SERIAL PRIMARY KEY,
       "matchNumber" INTEGER UNIQUE,
@@ -138,5 +166,9 @@ export async function initDB() {
       comments TEXT,
       "createdAt" TEXT
     );
-  `);
+  `.split(';').filter(q => q.trim().length > 0);
+
+  for (const q of queries) {
+    await query(q);
+  }
 }
