@@ -73,15 +73,35 @@ export default function AdminDashboardClient() {
     showModal({
       type: 'confirm',
       title: 'Wipe All Quals?',
-      message: `CRITICAL: This will permanently delete EVERY qualification match in the ${activeTab === 'normal' ? 'Standard' : 'Live'} roster. This cannot be reversed. Continue?`,
+      message: `CRITICAL: This will permanently delete EVERY qualification match AND all associated reports/drafts in the ${activeTab === 'normal' ? 'Standard' : 'Live'} system. This cannot be reversed. Continue?`,
       onConfirm: async () => {
         const endpoint = activeTab === 'normal' ? '/api/scout?deleteAll=true' : '/api/live-scout?deleteAll=true';
         const res = await fetch(endpoint, { method: 'DELETE' });
         if (res.ok) {
-          showModal({ type: 'success', title: 'Wiped', message: `All ${activeTab === 'normal' ? 'Standard' : 'Live'} matches have been removed.` });
+          showModal({ type: 'success', title: 'Wiped', message: `All ${activeTab === 'normal' ? 'Standard' : 'Live'} data has been removed.` });
           fetchData();
         } else {
-          showModal({ type: 'error', title: 'Error', message: 'Failed to clear matches.' });
+          showModal({ type: 'error', title: 'Error', message: 'Failed to clear records.' });
+        }
+      }
+    });
+  };
+
+  const competitionReset = async () => {
+    showModal({
+      type: 'confirm',
+      title: '🔥 FULL COMPETITION RESET?',
+      message: 'ABSOLUTE CRITICAL WARNING: This will wipe EVERY match, report, and draft from BOTH Modern and Live scouting systems. This is for starting a brand new competition only. Continue?',
+      onConfirm: async () => {
+        try {
+          await Promise.all([
+            fetch('/api/scout?deleteAll=true', { method: 'DELETE' }),
+            fetch('/api/live-scout?deleteAll=true', { method: 'DELETE' })
+          ]);
+          showModal({ type: 'success', title: 'System Nuked', message: 'All competition data has been completely erased. You have a clean slate.' });
+          fetchData();
+        } catch (err) {
+          showModal({ type: 'error', title: 'Error', message: 'The reset partially failed. Please check logs.' });
         }
       }
     });
@@ -188,12 +208,20 @@ export default function AdminDashboardClient() {
               Managing {activeTab === 'normal' ? 'Standard Scouting' : 'Real-Time Qual'} Roster
             </h2>
             {matches.length > 0 && (
-              <button 
-                onClick={deleteAllMatches}
-                className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-[10px] tracking-widest bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20"
-              >
-                <Trash2 size={12} /> Clear All Quals
-              </button>
+              <div className="ml-auto flex gap-2">
+                <button 
+                  onClick={deleteAllMatches}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-[10px] tracking-widest bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20"
+                >
+                  <Trash2 size={12} /> Clear {activeTab === 'normal' ? 'Standard' : 'Live'}
+                </button>
+                <button 
+                  onClick={competitionReset}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-[10px] tracking-widest bg-red-600 text-white hover:bg-red-700 transition-all shadow-lg shadow-red-500/20"
+                >
+                  <Trash2 size={12} /> Full Reset
+                </button>
+              </div>
             )}
           </div>
 

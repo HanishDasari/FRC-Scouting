@@ -122,6 +122,8 @@ export async function DELETE(req: Request) {
     const deleteAll = searchParams.get('deleteAll');
 
     if (deleteAll === 'true') {
+      await query('DELETE FROM reports');
+      await query('DELETE FROM drafts');
       await query('DELETE FROM matches');
       return NextResponse.json({ success: true });
     }

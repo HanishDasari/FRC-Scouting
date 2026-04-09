@@ -79,6 +79,7 @@ export async function DELETE(req: Request) {
     const deleteAll = searchParams.get('deleteAll');
 
     if (deleteAll === 'true') {
+      await query('DELETE FROM live_reports');
       await query('DELETE FROM live_matches');
       return NextResponse.json({ success: true });
     }
