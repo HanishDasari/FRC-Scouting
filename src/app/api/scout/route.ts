@@ -75,11 +75,14 @@ export async function POST(req: Request) {
           "avgFuelScored", "hasVision", "hasMajorIssues", "commonIssue", "updatedAt")
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
         ON DUPLICATE KEY UPDATE
-          status=$2, "scouterName"=$3, "teamNumber"=$4, "matchNumber"=$5, "gameStrategy"=$6, "drivetrainType"=$7,
-          "robotWeight"=$8, "scoringRange"=$9, "storageCapacity"=$10, "outtakeType"=$11, "driverExperience"=$12,
-          "autoDescription"=$13, "autoStartPositions"=$14, "autoAccuracy"=$15, "hasHang"=$16, "shootingAccuracy"=$17,
-          "cycleTime"=$18, "intakeType"=$19, "avgFuelScored"=$20, "hasVision"=$21, "hasMajorIssues"=$22,
-          "commonIssue"=$23, "updatedAt"=$24`,
+          status=VALUES(status), "scouterName"=VALUES("scouterName"), "teamNumber"=VALUES("teamNumber"), 
+          "matchNumber"=VALUES("matchNumber"), "gameStrategy"=VALUES("gameStrategy"), "drivetrainType"=VALUES("drivetrainType"),
+          "robotWeight"=VALUES("robotWeight"), "scoringRange"=VALUES("scoringRange"), "storageCapacity"=VALUES("storageCapacity"), 
+          "outtakeType"=VALUES("outtakeType"), "driverExperience"=VALUES("driverExperience"), "autoDescription"=VALUES("autoDescription"),
+          "autoStartPositions"=VALUES("autoStartPositions"), "autoAccuracy"=VALUES("autoAccuracy"), "hasHang"=VALUES("hasHang"), 
+          "shootingAccuracy"=VALUES("shootingAccuracy"), "cycleTime"=VALUES("cycleTime"), "intakeType"=VALUES("intakeType"),
+          "avgFuelScored"=VALUES("avgFuelScored"), "hasVision"=VALUES("hasVision"), "hasMajorIssues"=VALUES("hasMajorIssues"),
+          "commonIssue"=VALUES("commonIssue"), "updatedAt"=VALUES("updatedAt")`,
         [r.id, 'IN_PROGRESS', r.scouterName, r.teamNumber, r.matchNumber, r.gameStrategy, r.drivetrainType,
          r.robotWeight, r.scoringRange, r.storageCapacity, r.outtakeType, r.driverExperience, r.autoDescription,
          r.autoStartPositions, r.autoAccuracy, r.hasHang, r.shootingAccuracy, r.cycleTime, r.intakeType,
@@ -93,11 +96,14 @@ export async function POST(req: Request) {
           "avgFuelScored", "hasVision", "hasMajorIssues", "commonIssue", "createdAt")
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
         ON DUPLICATE KEY UPDATE
-          status=$2, "scouterName"=$3, "teamNumber"=$4, "matchNumber"=$5, "gameStrategy"=$6, "drivetrainType"=$7,
-          "robotWeight"=$8, "scoringRange"=$9, "storageCapacity"=$10, "outtakeType"=$11, "driverExperience"=$12,
-          "autoDescription"=$13, "autoStartPositions"=$14, "autoAccuracy"=$15, "hasHang"=$16, "shootingAccuracy"=$17,
-          "cycleTime"=$18, "intakeType"=$19, "avgFuelScored"=$20, "hasVision"=$21, "hasMajorIssues"=$22,
-          "commonIssue"=$23, "createdAt"=$24`,
+          status=VALUES(status), "scouterName"=VALUES("scouterName"), "teamNumber"=VALUES("teamNumber"), 
+          "matchNumber"=VALUES("matchNumber"), "gameStrategy"=VALUES("gameStrategy"), "drivetrainType"=VALUES("drivetrainType"),
+          "robotWeight"=VALUES("robotWeight"), "scoringRange"=VALUES("scoringRange"), "storageCapacity"=VALUES("storageCapacity"), 
+          "outtakeType"=VALUES("outtakeType"), "driverExperience"=VALUES("driverExperience"), "autoDescription"=VALUES("autoDescription"),
+          "autoStartPositions"=VALUES("autoStartPositions"), "autoAccuracy"=VALUES("autoAccuracy"), "hasHang"=VALUES("hasHang"), 
+          "shootingAccuracy"=VALUES("shootingAccuracy"), "cycleTime"=VALUES("cycleTime"), "intakeType"=VALUES("intakeType"),
+          "avgFuelScored"=VALUES("avgFuelScored"), "hasVision"=VALUES("hasVision"), "hasMajorIssues"=VALUES("hasMajorIssues"),
+          "commonIssue"=VALUES("commonIssue"), "createdAt"=VALUES("createdAt")`,
         [r.id, 'COMPLETED', r.scouterName, r.teamNumber, r.matchNumber, r.gameStrategy, r.drivetrainType,
          r.robotWeight, r.scoringRange, r.storageCapacity, r.outtakeType, r.driverExperience, r.autoDescription,
          r.autoStartPositions, r.autoAccuracy, r.hasHang, r.shootingAccuracy, r.cycleTime, r.intakeType,

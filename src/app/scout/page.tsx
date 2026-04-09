@@ -141,6 +141,9 @@ function ScoutForm() {
           message: 'Scouting report SUBMITTED!', 
           onConfirm: () => router.push('/dashboard') 
         });
+      } else if (!res.ok) {
+        const d = await res.json();
+        showModal({ type: 'error', title: 'Submission Failed', message: d.error || `Server error: ${res.status}` });
       }
     } catch { 
       showModal({ type: 'error', title: 'Error', message: 'Error syncing data.' }); 
