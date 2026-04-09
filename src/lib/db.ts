@@ -18,7 +18,14 @@ if (isDev) {
     uri: process.env.DATABASE_URL,
     ssl: {
       rejectUnauthorized: true
-    }
+    },
+    waitForConnections: true,
+    connectionLimit: 10,
+    maxIdle: 10,
+    idleTimeout: 60000,
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 10000
   });
 }
 
@@ -80,8 +87,11 @@ export async function query(text: string, params: any[] = []) {
       }
 
       return { rows: results };
-    } catch (err) {
+    } catch (err: any) {
       console.error('MySQL Error:', err);
+      if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
+        throw new Error('Database is currently waking up. Please wait a moment and try again.');
+      }
       throw err;
     }
   }

@@ -51,23 +51,41 @@ export default function Dashboard() {
   const [matches, setMatches] = useState<MatchConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [errorCount, setErrorCount] = useState(0);
+  const [isWakingUp, setIsWakingUp] = useState(false);
 
-  const fetchData = useCallback(() => {
-    fetch('/api/scout')
-      .then(res => res.json())
-      .then(data => {
-        if (data && !data.error) {
-          if (data.reports) setReports(data.reports);
-          if (data.matches) setMatches(data.matches);
-        } else if (data.error) {
-          console.error('API Error:', data.error);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Fetch error:', err);
-        setLoading(false);
-      });
+  const fetchData = useCallback(async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      setIsWakingUp(true);
+    }, 10000); // 10 second timeout
+
+    try {
+      const res = await fetch('/api/scout', { signal: controller.signal });
+      const data = await res.json();
+      clearTimeout(timeoutId);
+
+      if (data && !data.error) {
+        if (data.reports) setReports(data.reports);
+        if (data.matches) setMatches(data.matches);
+        setIsWakingUp(false);
+        setErrorCount(0);
+      } else if (data.error) {
+        console.error('API Error:', data.error);
+        setErrorCount(prev => prev + 1);
+      }
+      setLoading(false);
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      console.error('Fetch error:', err);
+      if (err.name === 'AbortError') {
+        setIsWakingUp(true);
+      } else {
+        setErrorCount(prev => prev + 1);
+      }
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -229,10 +247,26 @@ export default function Dashboard() {
     );
   };
 
-  if (loading) return (
-    <div className="flex flex-col items-center justify-center min-h-screen" style={{ background: '#0a0a0f' }}>
-      <div className="w-14 h-14 rounded-full border-4 border-t-transparent animate-spin mb-4" style={{ borderColor: '#e11d48 transparent transparent transparent' }} />
-      <div className="text-lg font-black italic uppercase animate-pulse" style={{ color: '#e11d48' }}>Syncing Grid...</div>
+  if (loading || isWakingUp) return (
+    <div className="flex flex-col items-center justify-center min-h-screen p-6" style={{ background: '#0a0a0f' }}>
+      <div className="w-14 h-14 rounded-full border-4 border-t-transparent animate-spin mb-6" style={{ borderColor: '#e11d48 transparent transparent transparent' }} />
+      <div className="text-2xl font-black italic uppercase text-center mb-2" style={{ color: '#e11d48' }}>
+        {isWakingUp ? 'Server is Waking Up...' : 'Syncing Grid...'}
+      </div>
+      <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#475569] text-center max-w-xs leading-relaxed">
+        {isWakingUp 
+          ? 'The server is currently spinning up from inactivity. This may take up to 60 seconds on the free tier.' 
+          : 'Connecting to the strategy mainframe...'}
+      </p>
+      {isWakingUp && (
+        <button 
+          onClick={() => { setLoading(true); setIsWakingUp(false); fetchData(); }}
+          className="mt-8 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all active:scale-95"
+          style={{ background: 'rgba(225,29,72,0.1)', border: '1.5px solid #e11d48', color: '#e11d48' }}
+        >
+          Retry Connection
+        </button>
+      )}
     </div>
   );
 
