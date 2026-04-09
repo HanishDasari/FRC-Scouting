@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       const teams = body.teams.map((t: any) => t.toString()).join(',');
       await query(
         `INSERT INTO matches ("matchNumber", teams) VALUES ($1, $2)
-         ON DUPLICATE KEY UPDATE teams = $2`,
+         ON DUPLICATE KEY UPDATE teams = VALUES(teams)`,
         [matchNumber, teams]
       );
       return NextResponse.json({ success: true });

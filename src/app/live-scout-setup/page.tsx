@@ -59,46 +59,64 @@ export default function LiveScoutSetupPage() {
     setLoading(true);
     const lines = massText.split('\n').map(l => l.trim()).filter(Boolean);
     let successCount = 0;
+    let failCount = 0;
+    let errors: string[] = [];
+    
     try {
       for (const line of lines) {
         const parts = line.split(/[\s,]+/).filter(Boolean);
-        // We need at least 7 parts (MatchNum + 6 Teams)
         if (parts.length >= 7) {
-          const matchNumber = parts[0];
-          const teams = parts.slice(-6); // Last 6 parts are always the teams
-          
-          // Metadata fields are everything between matchNumber and the 6 teams
+          const matchNum = parts[0];
+          const teams = parts.slice(-6);
           let time = '';
           let qualRound = '';
           
           if (parts.length === 8) {
-            // Probably: Match Time Team1...6
             time = parts[1];
           } else if (parts.length >= 9) {
-            // Probably: Match Time Round Team1...6
             time = parts[1];
             qualRound = parts[2];
           }
 
-          await fetch('/api/live-scout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-               type: 'SET_MATCH', 
-               matchNumber, 
-               time, 
-               qualRound, 
-               teams 
-            }),
-          });
-          successCount++;
+          try {
+            const res = await fetch('/api/live-scout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                 type: 'SET_MATCH', 
+                 matchNumber: matchNum, 
+                 time, 
+                 qualRound, 
+                 teams 
+              }),
+            });
+            if (res.ok) {
+              successCount++;
+            } else {
+              const d = await res.json();
+              failCount++;
+              errors.push(`Qual ${matchNum}: ${d.error || res.status}`);
+            }
+          } catch (err) {
+            failCount++;
+            errors.push(`Qual ${matchNum}: Connection error`);
+          }
         }
       }
-      showModal({ type: 'success', title: 'Success', message: `Successfully saved ${successCount} matches!` });
-      setMassText('');
-      setTimeout(() => router.push('/live-dashboard'), 2000);
+      
+      if (failCount === 0) {
+        showModal({ type: 'success', title: 'Import Complete', message: `Successfully saved all ${successCount} matches!` });
+        setMassText('');
+        setTimeout(() => router.push('/live-dashboard'), 2000);
+      } else {
+        showModal({ 
+          type: 'warning', 
+          title: 'Import Finished with Errors', 
+          message: `Saved ${successCount} matches, but ${failCount} failed.\n\nErrors:\n${errors.join('\n')}` 
+        });
+      }
     } catch (err: any) { 
-      showModal({ type: 'error', title: 'Error', message: `Error: ${err.message}` }); 
+      showModal({ type: 'error', title: 'Error', message: `Error processing mass import: ${err.message}` }); 
     } finally { setLoading(false); }
   };
 

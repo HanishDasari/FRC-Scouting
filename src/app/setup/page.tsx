@@ -59,6 +59,9 @@ export default function MatchSetupPage() {
     try {
       const lines = massText.trim().split('\n');
       let successCount = 0;
+      let failCount = 0;
+      let errors: string[] = [];
+
       for (const line of lines) {
         const trimmedLine = line.trim();
         if (!trimmedLine) continue;
@@ -67,17 +70,38 @@ export default function MatchSetupPage() {
         if (parts.length >= 7) {
           const m = parts[0];
           const ts = parts.slice(1, 7);
-          await fetch('/api/scout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'SET_MATCH', matchNumber: m, teams: ts }),
-          });
-          successCount++;
+          try {
+            const res = await fetch('/api/scout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'SET_MATCH', matchNumber: m, teams: ts }),
+            });
+            if (res.ok) {
+              successCount++;
+            } else {
+              const d = await res.json();
+              failCount++;
+              errors.push(`Qual ${m}: ${d.error || res.status}`);
+            }
+          } catch (err) {
+            failCount++;
+            errors.push(`Qual ${m}: Connection error`);
+          }
         }
       }
-      showModal({ type: 'success', title: 'Success', message: `Successfully saved ${successCount} matches!` });
+      
+      if (failCount === 0) {
+        showModal({ type: 'success', title: 'Import Complete', message: `Successfully saved all ${successCount} matches!` });
+        setMassText('');
+      } else {
+        showModal({ 
+          type: 'warning', 
+          title: 'Import Finished with Errors', 
+          message: `Saved ${successCount} matches, but ${failCount} failed.\n\nErrors:\n${errors.join('\n')}` 
+        });
+      }
     } catch (err: any) { 
-      showModal({ type: 'error', title: 'Error', message: `Error: ${err.message}` }); 
+      showModal({ type: 'error', title: 'Error', message: `Error processing mass import: ${err.message}` }); 
     } finally { setLoading(false); }
   };
 

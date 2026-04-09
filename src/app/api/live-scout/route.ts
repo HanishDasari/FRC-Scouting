@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       const teams = body.teams.map((t: any) => t.toString()).join(',');
       await query(
         `INSERT INTO live_matches ("matchNumber", "time", "qualRound", teams) VALUES ($1, $2, $3, $4)
-         ON DUPLICATE KEY UPDATE "time" = $2, "qualRound" = $3, teams = $4`,
+         ON DUPLICATE KEY UPDATE "time" = VALUES("time"), "qualRound" = VALUES("qualRound"), teams = VALUES(teams)`,
         [matchNumber, body.time || '', body.qualRound || '', teams]
       );
       return NextResponse.json({ success: true });
@@ -54,9 +54,9 @@ export async function POST(req: Request) {
         INSERT INTO live_reports (id, "scouterName", "teamNumber", "matchNumber", scored, "autonScored", "hasHang", comments, "createdAt")
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
         ON DUPLICATE KEY UPDATE
-          "scouterName"=$2, "teamNumber"=$3, "matchNumber"=$4, 
-          scored=$5, "autonScored"=$6, "hasHang"=$7, 
-          comments=$8, "createdAt"=$9`,
+          "scouterName"=VALUES("scouterName"), "teamNumber"=VALUES("teamNumber"), "matchNumber"=VALUES("matchNumber"), 
+          scored=VALUES(scored), "autonScored"=VALUES("autonScored"), "hasHang"=VALUES("hasHang"), 
+          comments=VALUES(comments), "createdAt"=VALUES("createdAt")`,
         [r.id, r.scouterName, r.teamNumber, r.matchNumber, r.scored, r.autonScored, r.hasHang, r.comments, new Date().toISOString()]
       );
 
