@@ -23,6 +23,7 @@ export default function AdminDashboardClient() {
   const [editingMatch, setEditingMatch] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<{ matchNumber: string, teams: string[] }>({ matchNumber: '', teams: [] });
   const [isSaving, setIsSaving] = useState(false);
+  const [reports, setReports] = useState<any[]>([]);
 
   const fetchData = useCallback(() => {
     const endpoint = activeTab === 'normal' ? '/api/scout' : '/api/live-scout';
@@ -30,6 +31,7 @@ export default function AdminDashboardClient() {
       .then(res => res.json())
       .then(data => {
         if (data.matches) setMatches(data.matches);
+        if (data.reports) setReports(data.reports);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -82,6 +84,24 @@ export default function AdminDashboardClient() {
           fetchData();
         } else {
           showModal({ type: 'error', title: 'Error', message: 'Failed to clear records.' });
+        }
+      }
+    });
+  };
+
+  const deleteReport = async (id: string, teamNumber: number) => {
+    showModal({
+      type: 'confirm',
+      title: 'Delete Record?',
+      message: `Delete scouting data for Team ${teamNumber}? This cannot be undone.`,
+      onConfirm: async () => {
+        const endpoint = activeTab === 'normal' ? `/api/scout?id=${id}` : `/api/live-scout?id=${id}`;
+        const res = await fetch(endpoint, { method: 'DELETE' });
+        if (res.ok) {
+          showModal({ type: 'success', title: 'Removed', message: 'The report has been deleted.' });
+          fetchData();
+        } else {
+          showModal({ type: 'error', title: 'Error', message: 'Failed to delete report.' });
         }
       }
     });
@@ -319,6 +339,47 @@ export default function AdminDashboardClient() {
                 )}
               </div>
             ))
+          )}
+        </div>
+
+        {/* Scouting Data Section */}
+        <div className="mt-16 space-y-6">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-3 rounded-2xl" style={{ background: 'rgba(59,130,246,0.1)' }}>
+              <ClipboardList style={{ color: '#3b82f6' }} size={24} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white">Scouting Records</h2>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#475569]">Manage individual team data</p>
+            </div>
+          </div>
+
+          {reports.length === 0 ? (
+            <div className="text-center py-12 rounded-3xl border-2 border-dashed border-[#1e1e2e]">
+              <div className="text-gray-600 font-bold uppercase tracking-widest text-xs">No scouting reports found for this system.</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {reports.map((report: any) => (
+                <div key={report.id} className="p-4 rounded-xl flex items-center justify-between group transition-all" style={{ background: '#13131a', border: '1.5px solid #1e1e2e' }}>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 flex items-center justify-center rounded-lg font-black text-lg text-white" style={{ background: 'linear-gradient(135deg, #1e1e2e, #0d0d14)', border: '1px solid #2d2d3d' }}>
+                      {report.teamNumber}
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-black uppercase tracking-widest text-cyan-500">Qual {report.matchNumber}</div>
+                      <div className="text-xs font-bold text-gray-400">Scouter: {report.scouterName || 'Anonymous'}</div>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => deleteReport(report.id, report.teamNumber)}
+                    className="p-3 rounded-lg text-rose-500 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
